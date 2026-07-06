@@ -13,6 +13,7 @@ DASHBOARD_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(DASHBOARD_DIR))
 from prepare_map_layers import load_map_layers
 from prepare_port_groups import build_port_groups
+from prepare_policy_layers import load_policy_layers, port_city_labels
 WORKBOOK = ROOT / "outputs/port_city_yearbook_merged_panel_three_stage_supersbm.xlsx"
 REF_TABLE = ROOT / "outputs/port_city_did_reference_table.csv"
 SHEET = "port_city_merged"
@@ -314,6 +315,10 @@ def main() -> None:
         "ports": ports,
         "portGroups": build_port_groups(ports),
         "mapLayers": load_map_layers(),
+        "policyLayers": load_policy_layers(ports),
+        "mapLabels": {
+            "cities": port_city_labels(ports),
+        },
         "records": records,
         "findings": {
             "ordinaryMean": float(ordinary.mean()),

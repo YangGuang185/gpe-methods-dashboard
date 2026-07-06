@@ -459,8 +459,8 @@
       width: 100%;
       height: 100%;
       pointer-events: none;
-      filter: blur(11px) saturate(1.18) contrast(1.06);
-      opacity: 0.82;
+      filter: blur(18px) saturate(1.28) contrast(1.08);
+      opacity: 0.9;
       mix-blend-mode: multiply;
     }
     .geo-map-stage svg {
@@ -498,6 +498,57 @@
       font-weight: 600;
       letter-spacing: 0.02em;
       pointer-events: none;
+    }
+    .geo-map-wrap .map-label-province {
+      fill: #2F4B52;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+    .geo-map-wrap .map-label-city {
+      fill: #3F6B8A;
+      font-size: 9px;
+      font-weight: 600;
+    }
+    .geo-map-wrap .map-label-port {
+      fill: #16333a;
+      font-size: 8px;
+      font-weight: 700;
+      paint-order: stroke;
+      stroke: rgba(255, 253, 247, 0.92);
+      stroke-width: 2.5px;
+      stroke-linejoin: round;
+    }
+    .geo-map-wrap .map-label-legend {
+      fill: #53666a;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .geo-policy-layer { pointer-events: none; }
+    .geo-policy-marker {
+      stroke: #fffdf7;
+      stroke-width: 1.4;
+    }
+    .geo-policy-label {
+      font-size: 8px;
+      font-weight: 700;
+      paint-order: stroke;
+      stroke: rgba(255, 253, 247, 0.95);
+      stroke-width: 2px;
+    }
+    .geo-smart-port-marker {
+      fill: #16333a;
+      stroke: #D06645;
+      stroke-width: 2;
+    }
+    .geo-overlay-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 20px 14px;
+      border-bottom: 1px solid var(--line);
     }
     .geo-map-wrap .map-frame {
       fill: none;
@@ -611,7 +662,7 @@
       height: 12px;
       border-radius: 999px;
       border: 1px solid var(--line);
-      background: linear-gradient(90deg, #F5F9FC 0%, #BAE0E0 28%, #48B2A8 58%, #087E72 78%, #D06645 100%);
+      background: linear-gradient(90deg, #EFF6FF 0%, #93C5FD 20%, #34D399 45%, #059669 65%, #F59E0B 85%, #DC2626 100%);
     }
     .geo-summary {
       display: grid;
@@ -951,6 +1002,13 @@
             </label>
           </div>
         </div>
+        <div class="geo-overlay-controls">
+          <label class="method-toggle">
+            <input type="checkbox" id="geo-policy-overlay">
+            <span class="dot" style="background:#6B4FA0"></span>
+            显示 AI 试验区 / 应用先导区 / 智慧港口
+          </label>
+        </div>
         <div class="geo-year-row">
           <button type="button" class="geo-play-btn" id="geo-play" aria-label="播放年度动画">▶ 播放</button>
           <input type="range" class="geo-year-slider" id="geo-year" min="2011" max="2023" step="1" value="2023">
@@ -1075,7 +1133,8 @@
       geoYear: DATA.meta.yearMax,
       geoPlaying: false,
       selectedGroup: null,
-      selectedPort: null
+      selectedPort: null,
+      showPolicyOverlay: false
     };
 
     const $ = (selector) => document.querySelector(selector);
@@ -1280,6 +1339,10 @@
         state.selectedGroup = null;
         state.selectedPort = null;
         renderGeoDetailPanel();
+        renderGeoHeatmap();
+      });
+      $("#geo-policy-overlay").addEventListener("change", (event) => {
+        state.showPolicyOverlay = event.target.checked;
         renderGeoHeatmap();
       });
       $$(".segmented button").forEach((button) => {
@@ -1824,15 +1887,24 @@
       return denominator ? numerator / denominator : null;
     }
 
-    function gpeHeatColor(value, min, max) {
-      const span = Math.max(max - min, 1e-6);
-      const t = Math.max(0, Math.min(1, (value - min) / span));
+    function geoHeatDomain() {
+      return { min: 0, max: 1 };
+    }
+
+    function gpeHeatT(value, domainMin = 0, domainMax = 1) {
+      const span = Math.max(domainMax - domainMin, 1e-6);
+      return Math.max(0, Math.min(1, (value - domainMin) / span));
+    }
+
+    function gpeHeatColor(value, domainMin = 0, domainMax = 1) {
+      const t = gpeHeatT(value, domainMin, domainMax);
       const stops = [
-        { t: 0.0, c: [245, 249, 252] },
-        { t: 0.22, c: [186, 224, 232] },
-        { t: 0.48, c: [72, 178, 168] },
-        { t: 0.72, c: [8, 126, 114] },
-        { t: 1.0, c: [208, 102, 69] }
+        { t: 0.0, c: [239, 246, 255] },
+        { t: 0.2, c: [147, 197, 253] },
+        { t: 0.4, c: [52, 211, 153] },
+        { t: 0.6, c: [16, 185, 129] },
+        { t: 0.8, c: [245, 158, 11] },
+        { t: 1.0, c: [220, 38, 38] }
       ];
       let left = stops[0];
       let right = stops[stops.length - 1];
@@ -1870,13 +1942,18 @@
       );
     }
 
-    function renderHeatCanvas(canvas, width, height, margin, points, min, max) {
+    function renderHeatCanvas(canvas, width, height, margin, points) {
+      const domain = geoHeatDomain();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
-      const ctx = canvas.getContext("2d");
+
+      const offscreen = document.createElement("canvas");
+      offscreen.width = canvas.width;
+      offscreen.height = canvas.height;
+      const ctx = offscreen.getContext("2d");
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
 
@@ -1896,8 +1973,8 @@
 
       const innerWidth = width - margin.left - margin.right;
       const innerHeight = height - margin.top - margin.bottom;
-      const gridCols = 96;
-      const gridRows = 68;
+      const gridCols = 140;
+      const gridRows = 100;
       const cellWidth = innerWidth / gridCols;
       const cellHeight = innerHeight / gridRows;
       for (let row = 0; row < gridRows; row += 1) {
@@ -1906,22 +1983,21 @@
           const cy = margin.top + (row + 0.5) * cellHeight;
           const { lat, lon } = geoLonLat(cx, cy, width, height, margin);
           if (!pointInLand(lat, lon)) continue;
-          const value = idwValue(lat, lon, points, 2.4);
+          const value = idwValue(lat, lon, points, 1.6);
           if (!Number.isFinite(value)) continue;
-          ctx.fillStyle = heatRGBA(gpeHeatColor(value, min, max), 0.58);
-          ctx.fillRect(margin.left + col * cellWidth, margin.top + row * cellHeight, cellWidth + 1, cellHeight + 1);
+          ctx.fillStyle = heatRGBA(gpeHeatColor(value, domain.min, domain.max), 0.72);
+          ctx.fillRect(margin.left + col * cellWidth, margin.top + row * cellHeight, cellWidth + 1.2, cellHeight + 1.2);
         }
       }
 
       points.forEach((point) => {
         const [x, y] = geoProject(point.lat, point.lon, width, height, margin);
-        const intensity = (point.value - min) / Math.max(max - min, 1e-6);
-        const radius = 34 + intensity * 24;
-        const color = gpeHeatColor(point.value, min, max);
+        const radius = 52 + gpeHeatT(point.value, domain.min, domain.max) * 28;
+        const color = gpeHeatColor(point.value, domain.min, domain.max);
         const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
-        gradient.addColorStop(0, heatRGBA(color, 0.92));
-        gradient.addColorStop(0.35, heatRGBA(color, 0.58));
-        gradient.addColorStop(0.72, heatRGBA(color, 0.18));
+        gradient.addColorStop(0, heatRGBA(color, 0.95));
+        gradient.addColorStop(0.28, heatRGBA(color, 0.62));
+        gradient.addColorStop(0.62, heatRGBA(color, 0.22));
         gradient.addColorStop(1, heatRGBA(color, 0));
         ctx.fillStyle = gradient;
         ctx.beginPath();
@@ -1929,6 +2005,16 @@
         ctx.fill();
       });
       ctx.restore();
+
+      const output = canvas.getContext("2d");
+      output.setTransform(1, 0, 0, 1, 0, 0);
+      output.clearRect(0, 0, canvas.width, canvas.height);
+      output.filter = "blur(12px)";
+      output.drawImage(offscreen, 0, 0);
+      output.filter = "none";
+      output.globalAlpha = 0.96;
+      output.drawImage(offscreen, 0, 0);
+      output.globalAlpha = 1;
     }
 
     function selectPortGroup(groupId) {
@@ -2041,6 +2127,151 @@
       });
     }
 
+    function shortPortName(name) {
+      return String(name)
+        .replace("（虎门港）", "")
+        .replace("（黄骅港区）", "")
+        .replace("（太仓港区等）", "")
+        .replace("独立", "")
+        .replace("港", "港");
+    }
+
+    function renderMapHierarchyLabels(svg, width, height, margin) {
+      const labelLayer = svgElement("g", { "aria-label": "行政与港口名称标注" }, svg);
+
+      const legend = svgElement("text", {
+        x: margin.left + 4,
+        y: margin.top + 12,
+        class: "map-label-legend"
+      }, labelLayer);
+      legend.textContent = "省 · 市 · 港";
+
+      DATA.mapLayers.provinces.forEach((province) => {
+        if (!province.label) return;
+        const [lon, lat] = province.label;
+        const [x, y] = geoProject(lat, lon, width, height, margin);
+        const label = svgElement("text", {
+          x,
+          y,
+          "text-anchor": "middle",
+          class: "map-label map-label-province"
+        }, labelLayer);
+        label.textContent = shortAdminName(province.name);
+      });
+
+      (DATA.mapLabels?.cities || []).forEach((cityLabel) => {
+        const [x, y] = geoProject(cityLabel.lat, cityLabel.lon, width, height, margin);
+        const label = svgElement("text", {
+          x,
+          y,
+          "text-anchor": "start",
+          class: "map-label map-label-city"
+        }, labelLayer);
+        label.textContent = cityLabel.city.replace("市", "");
+      });
+
+      DATA.ports.forEach((port) => {
+        const [x, y] = geoProject(port.lat, port.lon, width, height, margin);
+        const label = svgElement("text", {
+          x,
+          y: y + 20,
+          "text-anchor": "middle",
+          class: "map-label map-label-port"
+        }, labelLayer);
+        label.textContent = shortPortName(port.port);
+      });
+    }
+
+    function renderPolicyOverlay(svg, width, height, margin) {
+      if (!state.showPolicyOverlay || !DATA.policyLayers) return;
+      const layer = svgElement("g", { class: "geo-policy-layer" }, svg);
+
+      DATA.policyLayers.innovationZones.forEach((zone) => {
+        const [x, y] = geoProject(zone.lat, zone.lon, width, height, margin);
+        svgElement("circle", {
+          cx: x,
+          cy: y,
+          r: 11,
+          fill: "rgba(107, 79, 160, 0.18)",
+          stroke: "#6B4FA0",
+          "stroke-width": 1.6,
+          class: "geo-policy-marker"
+        }, layer);
+        svgElement("circle", {
+          cx: x,
+          cy: y,
+          r: 4,
+          fill: "#6B4FA0"
+        }, layer);
+        const label = svgElement("text", {
+          x: x + 13,
+          y: y + 3,
+          class: "geo-policy-label",
+          fill: "#6B4FA0"
+        }, layer);
+        label.textContent = `试验区·${zone.cityLabel}`;
+      });
+
+      DATA.policyLayers.applicationZones.forEach((zone) => {
+        const [x, y] = geoProject(zone.lat, zone.lon, width, height, margin);
+        svgElement("rect", {
+          x: x - 9,
+          y: y - 9,
+          width: 18,
+          height: 18,
+          rx: 3,
+          fill: "rgba(208, 102, 69, 0.16)",
+          stroke: "#D06645",
+          "stroke-width": 1.6,
+          class: "geo-policy-marker"
+        }, layer);
+        const label = svgElement("text", {
+          x: x + 13,
+          y: y + 3,
+          class: "geo-policy-label",
+          fill: "#B64D32"
+        }, layer);
+        label.textContent = `先导区·${zone.cityLabel}`;
+      });
+
+      DATA.policyLayers.smartPorts.forEach((port) => {
+        const [x, y] = geoProject(port.lat, port.lon, width, height, margin);
+        svgElement("path", {
+          d: `M ${x} ${y - 10} L ${x + 7} ${y + 6} L ${x - 7} ${y + 6} Z`,
+          class: "geo-smart-port-marker"
+        }, layer);
+        const label = svgElement("text", {
+          x,
+          y: y + 18,
+          "text-anchor": "middle",
+          class: "geo-policy-label",
+          fill: "#16333a"
+        }, layer);
+        label.textContent = `智慧港口·${shortPortName(port.port).replace("港", "")}`;
+      });
+
+      const legendY = margin.top + 28;
+      [
+        ["#6B4FA0", "AI 创新发展试验区"],
+        ["#D06645", "AI 创新应用先导区"],
+        ["#16333a", "智慧港口试点"]
+      ].forEach(([color, text], index) => {
+        const yy = legendY + index * 14;
+        svgElement("circle", {
+          cx: margin.left + 8,
+          cy: yy - 3,
+          r: 4,
+          fill: color
+        }, layer);
+        svgElement("text", {
+          x: margin.left + 18,
+          y: yy,
+          class: "map-label-legend",
+          fill: color
+        }, layer).textContent = text;
+      });
+    }
+
     function shortAdminName(name) {
       return String(name)
         .replace("壮族自治区", "")
@@ -2133,20 +2364,6 @@
         }, provinceBorderGroup);
       });
 
-      const labelGroup = svgElement("g", {}, svg);
-      DATA.mapLayers.provinces.forEach((province) => {
-        if (!province.label) return;
-        const [lon, lat] = province.label;
-        const [x, y] = geoProject(lat, lon, width, height, margin);
-        const label = svgElement("text", {
-          x,
-          y,
-          "text-anchor": "middle",
-          class: "map-label"
-        }, labelGroup);
-        label.textContent = shortAdminName(province.name);
-      });
-
       svgElement("rect", {
         x: margin.left,
         y: margin.top,
@@ -2229,7 +2446,7 @@
       const width = Math.max(560, container.clientWidth || 920);
       const height = Math.round(width * 0.72);
       const margin = { top: 28, right: 24, bottom: 42, left: 54 };
-      const { min, max } = geoValueRange(state.geoMethod);
+      const heatDomain = geoHeatDomain();
 
       const stage = document.createElement("div");
       stage.className = "geo-map-stage";
@@ -2246,33 +2463,45 @@
       container.appendChild(stage);
 
       renderGeoLandLayers(svg, width, height, margin);
-      renderHeatCanvas(canvas, width, height, margin, points, min, max);
+      renderHeatCanvas(canvas, width, height, margin, points);
       renderGeoMapOverlays(svg, width, height, margin);
       renderPortGroupLayers(svg, width, height, margin);
+      renderPolicyOverlay(svg, width, height, margin);
+      renderMapHierarchyLabels(svg, width, height, margin);
 
       const markerGroup = svgElement("g", {}, svg);
       points.forEach((point) => {
         const [cx, cy] = geoProject(point.lat, point.lon, width, height, margin);
-        const intensity = (point.value - min) / Math.max(max - min, 1e-6);
-        const radius = 4.5 + intensity * 4.5;
-        const group = portGroupById.get(point.group);
+        const t = gpeHeatT(point.value, heatDomain.min, heatDomain.max);
+        const radius = 7 + t * 4;
+        const fillColor = gpeHeatColor(point.value, heatDomain.min, heatDomain.max);
         const selected = state.selectedPort === point.port;
-        const glow = svgElement("circle", {
+        const halo = svgElement("circle", {
           cx,
           cy,
-          r: radius + (selected ? 8 : 5),
-          fill: group ? group.color : method.color,
-          opacity: selected ? 0.34 : 0.18
+          r: radius + (selected ? 7 : 5),
+          fill: fillColor,
+          opacity: selected ? 0.28 : 0.16
         }, markerGroup);
         const marker = svgElement("circle", {
           cx,
           cy,
           r: radius,
-          fill: "#fffdf7",
-          stroke: selected ? group?.color || method.color : method.color,
-          "stroke-width": selected ? 3 : 2,
+          fill: fillColor,
+          stroke: selected ? "#16333a" : "rgba(255, 253, 247, 0.92)",
+          "stroke-width": selected ? 2.5 : 1.6,
           cursor: "pointer"
         }, markerGroup);
+        const valueLabel = svgElement("text", {
+          x: cx,
+          y: cy + 3,
+          "text-anchor": "middle",
+          fill: t >= 0.55 ? "#fffdf7" : "#16333a",
+          "font-size": 7.5,
+          "font-weight": 800,
+          "pointer-events": "none"
+        }, markerGroup);
+        valueLabel.textContent = format(point.value, 2);
         const show = (event) => showTooltip(event,
           `<strong>${escapeHtml(point.port)}</strong><br>${escapeHtml(point.city)} · ${escapeHtml(point.group)}<br>类型：${escapeHtml(point.portType || portCoordByName.get(point.port)?.portType || "—")}<br>${state.geoYear} · ${escapeHtml(method.label)}<br>GPE ${format(point.value, 4)}`
         );
@@ -2283,9 +2512,9 @@
         marker.addEventListener("mousemove", show);
         marker.addEventListener("mouseleave", hideTooltip);
         marker.addEventListener("click", activate);
-        glow.addEventListener("mousemove", show);
-        glow.addEventListener("mouseleave", hideTooltip);
-        glow.addEventListener("click", activate);
+        halo.addEventListener("mousemove", show);
+        halo.addEventListener("mouseleave", hideTooltip);
+        halo.addEventListener("click", activate);
       });
 
       const title = svgElement("text", {
@@ -2306,11 +2535,11 @@
         <div class="geo-metric"><span>最高效率港口</span><strong>${escapeHtml(topPort.port)} · ${format(topPort.value, 4)}</strong></div>
         <div class="geo-metric"><span>最低效率港口</span><strong>${escapeHtml(bottomPort.port)} · ${format(bottomPort.value, 4)}</strong></div>
       `;
-      $("#geo-legend-min").textContent = format(min, 3);
-      $("#geo-legend-max").textContent = format(max, 3);
+      $("#geo-legend-min").textContent = format(heatDomain.min, 2);
+      $("#geo-legend-max").textContent = format(heatDomain.max, 2);
       const districtCount = (DATA.mapLayers.districts || []).length;
       $("#geo-map-credit").textContent =
-        `底图：${DATA.mapLayers.source}；${DATA.mapLayers.provinces.length} 省 / ${DATA.mapLayers.prefectures.length} 市 / ${districtCount} 区县界。点击港口群标签或色块查看下属港口与类型。`;
+        `底图：${DATA.mapLayers.source}；标注层级：省 / 市 / 港。勾选后可叠加 AI 试验区（${DATA.policyLayers.innovationZones.length}）、应用先导区（${DATA.policyLayers.applicationZones.length}）与智慧港口试点（${DATA.policyLayers.smartPorts.length}）。`;
       renderGeoDetailPanel();
     }
 
