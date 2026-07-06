@@ -1,0 +1,2403 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>港口 GPE 方法谱系与分布比较</title>
+  <style>
+    :root {
+      --ink: #16333a;
+      --ink-soft: #53666a;
+      --paper: #f4f0e6;
+      --paper-strong: #fffdf7;
+      --line: #d8d2c5;
+      --line-strong: #b9b1a1;
+      --teal: #087e72;
+      --teal-dark: #075e59;
+      --blue: #3f6b8a;
+      --orange: #d06645;
+      --brown: #786b5f;
+      --warning: #8f4b31;
+      --shadow: 0 24px 70px rgba(43, 54, 50, 0.09);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; max-width: 100%; overflow-x: hidden; }
+    body {
+      margin: 0;
+      max-width: 100%;
+      overflow-x: hidden;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 88% 5%, rgba(208, 102, 69, 0.10), transparent 27rem),
+        radial-gradient(circle at 10% 30%, rgba(8, 126, 114, 0.08), transparent 32rem),
+        linear-gradient(rgba(22, 51, 58, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(22, 51, 58, 0.025) 1px, transparent 1px),
+        var(--paper);
+      background-size: auto, auto, 32px 32px, 32px 32px, auto;
+      font-family: "Avenir Next", "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", sans-serif;
+      line-height: 1.55;
+    }
+
+    button, select { font: inherit; }
+    a { color: inherit; }
+    .serif {
+      font-family: "Songti SC", "Source Han Serif SC", "Noto Serif CJK SC", Georgia, serif;
+    }
+
+    .hero {
+      min-height: 72vh;
+      display: grid;
+      align-items: end;
+      padding: 7rem max(5vw, 24px) 3.5rem;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--line-strong);
+    }
+    .hero::after {
+      content: "GPE";
+      position: absolute;
+      right: -0.03em;
+      bottom: -0.28em;
+      font-family: "Avenir Next Condensed", "Arial Narrow", sans-serif;
+      font-size: clamp(11rem, 30vw, 31rem);
+      font-weight: 800;
+      letter-spacing: -0.08em;
+      color: rgba(8, 126, 114, 0.045);
+      pointer-events: none;
+    }
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      max-width: 1260px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1rem;
+      color: var(--teal-dark);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 44px;
+      height: 2px;
+      background: var(--orange);
+    }
+    h1 {
+      max-width: 920px;
+      margin: 0;
+      font-size: clamp(2.8rem, 7vw, 6.9rem);
+      line-height: 0.98;
+      font-weight: 650;
+      letter-spacing: -0.055em;
+    }
+    .hero-subtitle {
+      max-width: 780px;
+      margin: 1.6rem 0 2rem;
+      color: var(--ink-soft);
+      font-size: clamp(1rem, 1.8vw, 1.25rem);
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .meta-pill {
+      padding: 8px 13px;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: rgba(255, 253, 247, 0.7);
+      font-size: 0.82rem;
+      backdrop-filter: blur(8px);
+    }
+
+    .sticky-controls {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      padding: 12px max(5vw, 24px);
+      border-bottom: 1px solid var(--line);
+      background: rgba(244, 240, 230, 0.92);
+      backdrop-filter: blur(16px);
+    }
+    .brand {
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.11em;
+      white-space: nowrap;
+    }
+    .global-filters {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--ink-soft);
+      font-size: 0.78rem;
+    }
+    select {
+      min-height: 38px;
+      padding: 7px 34px 7px 11px;
+      color: var(--ink);
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: var(--paper-strong);
+    }
+
+    main {
+      max-width: 1360px;
+      min-width: 0;
+      margin: 0 auto;
+      padding: 1rem max(4vw, 20px) 6rem;
+      overflow-x: clip;
+    }
+    .section {
+      min-width: 0;
+      padding: 5.5rem 0 1.5rem;
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 560ms ease, transform 560ms ease;
+    }
+    .section.visible { opacity: 1; transform: translateY(0); }
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.8fr) minmax(320px, 1.2fr);
+      gap: 34px;
+      align-items: end;
+      margin-bottom: 2rem;
+      padding-bottom: 1.2rem;
+      border-bottom: 1px solid var(--line-strong);
+    }
+    .kicker {
+      margin: 0 0 7px;
+      color: var(--orange);
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    h2 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.8rem);
+      line-height: 1.06;
+      letter-spacing: -0.035em;
+    }
+    .section-desc {
+      margin: 0;
+      color: var(--ink-soft);
+      max-width: 680px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+    .summary-card {
+      grid-column: span 3;
+      min-height: 190px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 247, 0.83);
+      box-shadow: 0 12px 32px rgba(45, 56, 51, 0.05);
+    }
+    .summary-card.wide { grid-column: span 6; }
+    .summary-label {
+      color: var(--ink-soft);
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .summary-value {
+      margin: 12px 0 5px;
+      font-size: clamp(2rem, 4vw, 3.8rem);
+      line-height: 1;
+      font-weight: 650;
+      letter-spacing: -0.05em;
+    }
+    .summary-note { color: var(--ink-soft); font-size: 0.86rem; }
+    .family-stripe {
+      width: 44px;
+      height: 5px;
+      border-radius: 999px;
+      margin-bottom: 18px;
+    }
+    .alias-note {
+      padding: 20px 22px;
+      margin-top: 16px;
+      border-left: 4px solid var(--orange);
+      background: rgba(255, 253, 247, 0.72);
+      color: var(--ink-soft);
+      font-size: 0.92rem;
+    }
+    .alias-note strong { color: var(--ink); }
+
+    .chart-card {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 247, 0.9);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 14px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(244, 240, 230, 0.6);
+    }
+    .toolbar-title {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    .toolbar-note { color: var(--ink-soft); font-size: 0.78rem; }
+    .inline-controls { display: flex; flex-wrap: wrap; gap: 10px; }
+    .chart-wrap { min-height: 0; padding: 12px; position: relative; background: var(--paper-strong); }
+    .chart-wrap svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+    .distribution-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 270px;
+      gap: 0;
+      min-width: 0;
+    }
+    .stat-rail {
+      padding: 22px;
+      border-left: 1px solid var(--line);
+      background: rgba(244, 240, 230, 0.45);
+    }
+    .stat-rail h3 { margin: 0 0 6px; font-size: 1rem; }
+    .column-name {
+      overflow-wrap: anywhere;
+      color: var(--ink-soft);
+      font-size: 0.72rem;
+    }
+    .stat-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .stat-item {
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+    }
+    .stat-item span { display: block; color: var(--ink-soft); font-size: 0.7rem; }
+    .stat-item strong { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+    .method-note {
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid var(--line);
+      color: var(--ink-soft);
+      font-size: 0.82rem;
+    }
+
+    .atlas-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      margin: 16px 0 12px;
+    }
+    .segmented {
+      display: inline-flex;
+      padding: 3px;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      background: var(--paper-strong);
+    }
+    .segmented button {
+      padding: 7px 11px;
+      color: var(--ink-soft);
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      cursor: pointer;
+      font-size: 0.76rem;
+    }
+    .segmented button.active { color: white; background: var(--ink); }
+    .atlas {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .mini-card {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 253, 247, 0.72);
+      cursor: pointer;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+    .mini-card:hover, .mini-card:focus-visible {
+      transform: translateY(-3px);
+      border-color: var(--line-strong);
+      box-shadow: 0 14px 34px rgba(35, 47, 44, 0.09);
+      outline: none;
+    }
+    .mini-card.active { border-color: var(--teal); box-shadow: inset 0 0 0 1px var(--teal); }
+    .mini-head { display: flex; justify-content: space-between; gap: 8px; align-items: start; }
+    .mini-title { font-size: 0.82rem; font-weight: 700; }
+    .mini-code {
+      flex: none;
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: rgba(22, 51, 58, 0.07);
+      color: var(--ink-soft);
+      font-size: 0.62rem;
+      font-weight: 800;
+    }
+    .mini-chart { height: 74px; margin-top: 8px; }
+    .mini-chart svg { width: 100%; height: 100%; display: block; }
+    .mini-stats { display: flex; justify-content: space-between; color: var(--ink-soft); font-size: 0.7rem; }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+      gap: 18px;
+      min-width: 0;
+    }
+    .comparison-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 16px 20px 20px;
+      border-top: 1px solid var(--line);
+    }
+    .metric {
+      padding: 12px;
+      border-radius: 13px;
+      background: rgba(244, 240, 230, 0.72);
+    }
+    .metric span { display: block; color: var(--ink-soft); font-size: 0.7rem; }
+    .metric strong { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+    .reading-card { padding: 22px; }
+    .reading-card h3 { margin-top: 0; }
+    .reading-card p { color: var(--ink-soft); }
+    .reading-card ul { padding-left: 1.1rem; color: var(--ink-soft); }
+    .reading-card li + li { margin-top: 9px; }
+
+    .heatmap-scroll { max-width: 100%; overflow-x: auto; padding: 12px; }
+    .heatmap-scroll svg { display: block; margin: 0 auto; }
+    .heatmap-hint {
+      padding: 0 20px 18px;
+      color: var(--ink-soft);
+      font-size: 0.76rem;
+    }
+
+    .geo-year-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(244, 240, 230, 0.45);
+    }
+    .geo-play-btn {
+      padding: 8px 14px;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: var(--paper-strong);
+      color: var(--teal-dark);
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .geo-play-btn:hover { border-color: var(--teal); }
+    .geo-play-btn.playing { background: rgba(8, 126, 114, 0.12); }
+    .geo-year-slider {
+      flex: 1;
+      accent-color: var(--teal);
+      min-width: 120px;
+    }
+    .geo-year-label {
+      min-width: 4.5rem;
+      font-size: 1.35rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--teal-dark);
+      text-align: right;
+    }
+    .geo-map-wrap {
+      padding: 12px;
+      background:
+        radial-gradient(circle at 72% 82%, rgba(63, 107, 138, 0.08), transparent 42%),
+        var(--paper-strong);
+      min-height: 520px;
+    }
+    .geo-map-stage {
+      position: relative;
+      width: 100%;
+    }
+    .geo-heat-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      filter: blur(11px) saturate(1.18) contrast(1.06);
+      opacity: 0.82;
+      mix-blend-mode: multiply;
+    }
+    .geo-map-stage svg {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .geo-map-wrap .map-ocean { fill: #E3EBF0; }
+    .geo-map-wrap .map-province-fill { stroke: none; }
+    .geo-map-wrap .map-district-border {
+      fill: none;
+      stroke: #D4DDE3;
+      stroke-width: 0.35;
+      stroke-linejoin: round;
+    }
+    .geo-map-wrap .map-province-border {
+      fill: none;
+      stroke: #2F4B52;
+      stroke-width: 1.15;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+    }
+    .geo-map-wrap .map-prefecture-border {
+      fill: none;
+      stroke: #98A8B0;
+      stroke-width: 0.65;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+    }
+    .geo-map-wrap .map-label {
+      fill: #53666a;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      pointer-events: none;
+    }
+    .geo-map-wrap .map-frame {
+      fill: none;
+      stroke: #16333a;
+      stroke-width: 1.1;
+    }
+    .geo-map-wrap .map-scale {
+      fill: #53666a;
+      font-size: 8px;
+    }
+    .geo-group-region {
+      cursor: pointer;
+      transition: opacity 0.18s ease, stroke-width 0.18s ease;
+    }
+    .geo-group-badge {
+      cursor: pointer;
+      transition: transform 0.18s ease;
+    }
+    .geo-group-badge:hover { transform: translateY(-1px); }
+    .geo-group-badge.active rect {
+      stroke-width: 2;
+      filter: drop-shadow(0 4px 10px rgba(22, 51, 58, 0.12));
+    }
+    .geo-detail-panel {
+      margin: 0 20px 18px;
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 253, 247, 0.92);
+    }
+    .geo-detail-panel[hidden] { display: none; }
+    .geo-detail-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+    .geo-detail-head h3 {
+      margin: 0;
+      font-size: 1.15rem;
+    }
+    .geo-detail-head p {
+      margin: 6px 0 0;
+      color: var(--ink-soft);
+      font-size: 0.82rem;
+    }
+    .geo-detail-close {
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--paper-strong);
+      cursor: pointer;
+      color: var(--ink-soft);
+      font-size: 0.76rem;
+    }
+    .geo-port-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+    }
+    .geo-port-card {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(244, 240, 230, 0.55);
+      cursor: pointer;
+      transition: border-color 0.18s ease, background 0.18s ease;
+    }
+    .geo-port-card:hover,
+    .geo-port-card.active {
+      border-color: var(--teal);
+      background: rgba(8, 126, 114, 0.08);
+    }
+    .geo-port-card strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.92rem;
+    }
+    .geo-port-card span {
+      display: block;
+      color: var(--ink-soft);
+      font-size: 0.74rem;
+      line-height: 1.45;
+    }
+    .geo-port-detail {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      color: var(--ink-soft);
+      font-size: 0.82rem;
+      line-height: 1.6;
+    }
+    .geo-port-detail strong { color: var(--ink); }
+    .geo-map-credit {
+      padding: 0 20px 14px;
+      color: var(--ink-soft);
+      font-size: 0.72rem;
+    }
+    .geo-legend {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px 18px;
+      border-top: 1px solid var(--line);
+      color: var(--ink-soft);
+      font-size: 0.76rem;
+    }
+    .geo-legend-bar {
+      flex: 1;
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: linear-gradient(90deg, #F5F9FC 0%, #BAE0E0 28%, #48B2A8 58%, #087E72 78%, #D06645 100%);
+    }
+    .geo-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 0 20px 18px;
+    }
+    .geo-metric {
+      padding: 12px;
+      border-radius: 13px;
+      background: rgba(244, 240, 230, 0.72);
+    }
+    .geo-metric span { display: block; color: var(--ink-soft); font-size: 0.7rem; }
+    .geo-metric strong { font-size: 1rem; font-variant-numeric: tabular-nums; }
+
+    .trend-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+    .method-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--paper-strong);
+      cursor: pointer;
+      font-size: 0.74rem;
+    }
+    .method-toggle input { accent-color: var(--teal); }
+    .dot { width: 9px; height: 9px; border-radius: 50%; }
+
+    .table-card { overflow: hidden; }
+    .table-scroll { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255, 253, 247, 0.88);
+      font-size: 0.82rem;
+    }
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      color: var(--ink-soft);
+      background: #eee9dc;
+      cursor: pointer;
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    tbody tr:hover { background: rgba(8, 126, 114, 0.045); }
+    .method-cell { display: flex; align-items: center; gap: 9px; font-weight: 700; }
+    .family-chip {
+      display: inline-block;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(22, 51, 58, 0.07);
+      color: var(--ink-soft);
+      font-size: 0.68rem;
+    }
+
+    .methodology {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .note-card {
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 247, 0.75);
+    }
+    .note-card h3 { margin-top: 0; }
+    .note-card p, .note-card li { color: var(--ink-soft); }
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding-top: 2rem;
+      margin-top: 4rem;
+      border-top: 1px solid var(--line-strong);
+      color: var(--ink-soft);
+      font-size: 0.76rem;
+    }
+
+    .axis text { fill: var(--ink-soft); font-size: 10px; }
+    .axis line, .axis path { stroke: var(--line-strong); }
+    .grid-line { stroke: var(--line); stroke-dasharray: 3 5; }
+    .reference-line { stroke: var(--orange); stroke-width: 1.25; stroke-dasharray: 5 4; }
+    .tooltip {
+      position: fixed;
+      z-index: 50;
+      max-width: 270px;
+      padding: 9px 11px;
+      color: #fff;
+      border-radius: 9px;
+      background: rgba(22, 51, 58, 0.94);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(5px);
+      transition: opacity 100ms ease, transform 100ms ease;
+      font-size: 0.76rem;
+    }
+    .tooltip.show { opacity: 1; transform: translateY(0); }
+    .empty {
+      display: grid;
+      place-items: center;
+      min-height: 260px;
+      color: var(--ink-soft);
+    }
+
+    @media (max-width: 1040px) {
+      .summary-card { grid-column: span 6; }
+      .atlas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .comparison-grid { grid-template-columns: minmax(0, 1fr); }
+      .distribution-layout { grid-template-columns: 1fr; }
+      .stat-rail { border-left: 0; border-top: 1px solid var(--line); }
+    }
+    @media (max-width: 720px) {
+      .hero { min-height: 64vh; padding-top: 5rem; }
+      .sticky-controls { align-items: flex-start; flex-direction: column; }
+      .global-filters { justify-content: flex-start; width: 100%; }
+      .control { flex: 1 1 150px; }
+      .control { min-width: 0; }
+      .control select { width: 100%; }
+      .section { padding-top: 4rem; }
+      .section-head { grid-template-columns: 1fr; gap: 16px; }
+      .geo-summary { grid-template-columns: 1fr; }
+      .summary-card, .summary-card.wide { grid-column: span 12; }
+      .atlas { grid-template-columns: 1fr; }
+      .methodology { grid-template-columns: 1fr; }
+      .card-toolbar { align-items: stretch; }
+      .inline-controls { flex-direction: column; width: 100%; }
+      .inline-controls .control { width: 100%; }
+      .inline-controls select { width: 100%; }
+      footer { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .section { opacity: 1; transform: none; transition: none; }
+      .mini-card { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">Port productivity research atlas</div>
+      <h1 class="serif">港口 GPE<br>方法谱系</h1>
+      <p class="hero-subtitle">
+        把普通 SBM、三阶段环境调整、Super-SBM 与历史能源来源口径放在同一证据框架中，
+        分别检查分布形态、年度演化、排序一致性与方法间偏差。
+      </p>
+      <div class="hero-meta" id="hero-meta"></div>
+    </div>
+  </header>
+
+  <nav class="sticky-controls" aria-label="全局筛选">
+    <div class="brand">GPE / METHOD ATLAS</div>
+    <div class="global-filters">
+      <label class="control">时间窗口
+        <select id="period-filter">
+          <option value="all">全部年份</option>
+          <option value="pre">疫情前（≤2019）</option>
+          <option value="pandemic">疫情期（2020–2023）</option>
+          <option value="latest">最新年份（2024）</option>
+        </select>
+      </label>
+      <label class="control">港口群
+        <select id="group-filter"><option value="all">全部港口群</option></select>
+      </label>
+      <div class="meta-pill" id="active-sample">—</div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="section" id="overview">
+      <div class="section-head">
+        <div>
+          <p class="kicker">01 / Evidence map</p>
+          <h2 class="serif">先看结论，再看图</h2>
+        </div>
+        <p class="section-desc">
+          这里的比较是描述性方法诊断，不把方法间差异解释为因果效应。主结果别名只用于追踪论文口径，
+          不重复进入分布和相关矩阵。
+        </p>
+      </div>
+      <div class="summary-grid" id="summary-grid"></div>
+      <div class="alias-note" id="alias-note"></div>
+    </section>
+
+    <section class="section" id="distribution">
+      <div class="section-head">
+        <div>
+          <p class="kicker">02 / Distribution</p>
+          <h2 class="serif">每种方法自己的分布</h2>
+        </div>
+        <p class="section-desc">
+          主图组合直方图、核密度与四分位箱线。橙色虚线标出效率值 1；
+          对普通 SBM 它通常是前沿上界，对 Super-SBM 则是区分前沿观测的基准线。
+        </p>
+      </div>
+
+      <div class="chart-card">
+        <div class="card-toolbar">
+          <div>
+            <div class="toolbar-title">分布检视器</div>
+            <div class="toolbar-note">筛选会同步更新以下所有图表与统计量</div>
+          </div>
+          <div class="inline-controls">
+            <label class="control">方法
+              <select id="distribution-method"></select>
+            </label>
+          </div>
+        </div>
+        <div class="distribution-layout">
+          <div class="chart-wrap" id="distribution-chart"></div>
+          <aside class="stat-rail" id="distribution-stats"></aside>
+        </div>
+      </div>
+
+      <div class="atlas-toolbar">
+        <div class="segmented" aria-label="小倍数横轴尺度">
+          <button class="active" data-scale="free">独立尺度</button>
+          <button data-scale="shared">统一尺度</button>
+        </div>
+      </div>
+      <div class="atlas" id="distribution-atlas"></div>
+    </section>
+
+    <section class="section" id="comparison">
+      <div class="section-head">
+        <div>
+          <p class="kicker">03 / Pairwise comparison</p>
+          <h2 class="serif">任意两种方法逐点对照</h2>
+        </div>
+        <p class="section-desc">
+          每个点是一条港口—年份观测。离 45° 线越远，方法差异越大；
+          颜色区分疫情前、疫情期与 2024 年，而非表示处理组。
+        </p>
+      </div>
+
+      <div class="comparison-grid">
+        <div class="chart-card">
+          <div class="card-toolbar">
+            <div class="toolbar-title">配对散点</div>
+            <div class="inline-controls">
+              <label class="control">横轴 <select id="scatter-x"></select></label>
+              <label class="control">纵轴 <select id="scatter-y"></select></label>
+            </div>
+          </div>
+          <div class="chart-wrap" id="scatter-chart"></div>
+          <div class="comparison-stats" id="comparison-stats"></div>
+        </div>
+        <aside class="chart-card reading-card">
+          <p class="kicker">Reading guide</p>
+          <h3 class="serif">如何读方法差异</h3>
+          <p id="pair-reading"></p>
+          <ul>
+            <li><strong>Pearson</strong> 衡量数值线性一致性。</li>
+            <li><strong>Spearman</strong> 更关注港口效率排序是否稳定。</li>
+            <li><strong>MAE</strong> 给出同一观测下两方法的平均绝对差。</li>
+            <li>Super-SBM 的大于 1 值不能与普通 SBM 的“超过上界”混为一谈。</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" id="correlation">
+      <div class="section-head">
+        <div>
+          <p class="kicker">04 / Concordance</p>
+          <h2 class="serif">16 种方法的相关结构</h2>
+        </div>
+        <p class="section-desc">
+          矩阵使用 Pearson 相关系数。点击任意方格可把该组合送入上方配对散点；
+          标签采用短代码，完整列名可在统计表中追溯。
+        </p>
+      </div>
+      <div class="chart-card">
+        <div class="heatmap-scroll" id="heatmap"></div>
+        <div class="heatmap-hint">颜色越深表示线性一致性越高；对角线固定为 1。</div>
+      </div>
+    </section>
+
+    <section class="section" id="trend">
+      <div class="section-head">
+        <div>
+          <p class="kicker">05 / Time profile</p>
+          <h2 class="serif">年度中位数与四分位带</h2>
+        </div>
+        <p class="section-desc">
+          实线为当年港口样本中位数，半透明带为 25–75 分位区间。
+          最多同时选择四条方法，避免把稳健性图变成不可读的“意大利面图”。
+        </p>
+      </div>
+      <div class="chart-card">
+        <div class="trend-controls" id="trend-controls"></div>
+        <div class="chart-wrap" id="trend-chart"></div>
+      </div>
+    </section>
+
+    <section class="section" id="geo-heatmap">
+      <div class="section-head">
+        <div>
+          <p class="kicker">06 / Geo heatmap</p>
+          <h2 class="serif">全国港口 GPE 空间热力</h2>
+        </div>
+        <p class="section-desc">
+          底图采用省级与地级市真实行政边界（DataV 国标 GeoJSON），Nature 风格线划：
+          省级边界加粗、地级市边界细线，GPE 热力仅叠加于陆域。拖动年份或播放动画观察空间—时间演化。
+        </p>
+      </div>
+      <div class="chart-card">
+        <div class="card-toolbar">
+          <div>
+            <div class="toolbar-title">地理热力图</div>
+            <div class="toolbar-note">热力值随所选方法与年份同步更新</div>
+          </div>
+          <div class="inline-controls">
+            <label class="control">方法
+              <select id="geo-method"></select>
+            </label>
+          </div>
+        </div>
+        <div class="geo-year-row">
+          <button type="button" class="geo-play-btn" id="geo-play" aria-label="播放年度动画">▶ 播放</button>
+          <input type="range" class="geo-year-slider" id="geo-year" min="2011" max="2023" step="1" value="2023">
+          <span class="geo-year-label" id="geo-year-label">2023</span>
+        </div>
+        <div class="geo-map-wrap" id="geo-heatmap-chart"></div>
+        <div class="geo-detail-panel" id="geo-detail-panel" hidden>
+          <div class="geo-detail-head">
+            <div>
+              <h3 class="serif" id="geo-detail-title">港口群详情</h3>
+              <p id="geo-detail-subtitle"></p>
+            </div>
+            <button type="button" class="geo-detail-close" id="geo-detail-close">关闭</button>
+          </div>
+          <div class="geo-port-grid" id="geo-detail-ports"></div>
+          <div class="geo-port-detail" id="geo-port-detail" hidden></div>
+        </div>
+        <div class="geo-summary" id="geo-summary"></div>
+        <div class="geo-legend">
+          <span id="geo-legend-min">低</span>
+          <div class="geo-legend-bar" aria-hidden="true"></div>
+          <span id="geo-legend-max">高</span>
+        </div>
+        <p class="geo-map-credit" id="geo-map-credit"></p>
+      </div>
+    </section>
+
+    <section class="section" id="statistics">
+      <div class="section-head">
+        <div>
+          <p class="kicker">07 / Statistical appendix</p>
+          <h2 class="serif">可排序描述统计</h2>
+        </div>
+        <p class="section-desc">
+          表内统计量随顶部筛选同步变化。点击表头排序；“&gt;1”帮助识别
+          Super-SBM 前沿区分以及历史口径中超过 1 的观测。
+        </p>
+      </div>
+      <div class="chart-card table-card">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th data-sort="label">方法</th>
+                <th data-sort="familyLabel">方法族</th>
+                <th data-sort="n">N</th>
+                <th data-sort="mean">均值</th>
+                <th data-sort="median">中位数</th>
+                <th data-sort="sd">标准差</th>
+                <th data-sort="q1">P25</th>
+                <th data-sort="q3">P75</th>
+                <th data-sort="max">最大值</th>
+                <th data-sort="aboveOne">&gt;1</th>
+              </tr>
+            </thead>
+            <tbody id="stats-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="methodology">
+      <div class="section-head">
+        <div>
+          <p class="kicker">08 / Research notes</p>
+          <h2 class="serif">解释边界与复现信息</h2>
+        </div>
+        <p class="section-desc">
+          可视化用于方法诊断、稳健性沟通和图表探索，不替代模型定义、SFA 收敛报告或正式回归表。
+        </p>
+      </div>
+      <div class="methodology">
+        <article class="note-card">
+          <h3>方法解释</h3>
+          <ul>
+            <li>普通 SBM 的效率值在当前实现中不超过 1。</li>
+            <li>Super-SBM 对普通 SBM 的效率前沿观测继续排序，因此允许大于 1。</li>
+            <li>CRS 与 VRS 的差异包含规模效率信息，不宜只凭均值高低选择模型。</li>
+            <li>历史 Selected、Trend 与 THC 字段保留用于来源口径敏感性，不作为当前主结果。</li>
+          </ul>
+        </article>
+        <article class="note-card">
+          <h3>数据与复现</h3>
+          <p id="source-note"></p>
+          <p>
+            页面为单文件、无外部 JavaScript 依赖；原始数值在构建时嵌入页面。
+            任何筛选只改变浏览器中的描述统计，不修改 Excel。
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <footer>
+      <span>GPE Method Atlas · Port-city panel diagnostics</span>
+      <span id="footer-source"></span>
+    </footer>
+  </main>
+
+  <div class="tooltip" id="tooltip" role="status" aria-live="polite"></div>
+
+  <script>
+    const DATA = __GPE_DATA__;
+
+    const methodById = new Map(DATA.methods.map((method) => [method.id, method]));
+    const methodIndex = new Map(DATA.methods.map((method, index) => [method.id, index]));
+    const portCoordByName = new Map(DATA.ports.map((port) => [port.port, port]));
+    const portGroupById = new Map(DATA.portGroups.map((group) => [group.id, group]));
+    const familyOrder = ["raw", "stage", "super", "legacy"];
+    const GEO_BOUNDS = DATA.mapLayers.bounds;
+    let geoPlayTimer = null;
+    const state = {
+      period: "all",
+      group: "all",
+      distribution: "stage_covid_crs",
+      scatterX: "stage_covid_crs",
+      scatterY: "super_covid_crs",
+      atlasScale: "free",
+      trend: ["stage_covid_crs", "super_covid_crs", "raw_crs", "legacy_selected_crs"],
+      sortKey: "mean",
+      sortDirection: "desc",
+      geoMethod: "stage_covid_crs",
+      geoYear: DATA.meta.yearMax,
+      geoPlaying: false,
+      selectedGroup: null,
+      selectedPort: null
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => [...document.querySelectorAll(selector)];
+    const tooltip = $("#tooltip");
+
+    function format(value, digits = 3) {
+      if (value === null || value === undefined || !Number.isFinite(value)) return "—";
+      if (Math.abs(value) < 0.0005 && value !== 0) return value.toExponential(2);
+      return value.toFixed(digits);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function sorted(values) {
+      return values.filter(Number.isFinite).slice().sort((a, b) => a - b);
+    }
+
+    function quantile(values, p) {
+      const array = sorted(values);
+      if (!array.length) return null;
+      const index = (array.length - 1) * p;
+      const lower = Math.floor(index);
+      const upper = Math.ceil(index);
+      if (lower === upper) return array[lower];
+      return array[lower] + (array[upper] - array[lower]) * (index - lower);
+    }
+
+    function summary(values) {
+      const array = sorted(values);
+      if (!array.length) {
+        return { n: 0, mean: null, median: null, sd: null, q1: null, q3: null, min: null, max: null, aboveOne: 0 };
+      }
+      const mean = array.reduce((sum, value) => sum + value, 0) / array.length;
+      const sd = array.length > 1
+        ? Math.sqrt(array.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (array.length - 1))
+        : 0;
+      return {
+        n: array.length,
+        mean,
+        median: quantile(array, 0.5),
+        sd,
+        q1: quantile(array, 0.25),
+        q3: quantile(array, 0.75),
+        min: array[0],
+        max: array[array.length - 1],
+        aboveOne: array.filter((value) => value > 1 + 1e-10).length
+      };
+    }
+
+    function ranks(values) {
+      const indexed = values.map((value, index) => ({ value, index })).sort((a, b) => a.value - b.value);
+      const result = new Array(values.length);
+      let start = 0;
+      while (start < indexed.length) {
+        let end = start + 1;
+        while (end < indexed.length && indexed[end].value === indexed[start].value) end += 1;
+        const averageRank = (start + end - 1) / 2 + 1;
+        for (let i = start; i < end; i += 1) result[indexed[i].index] = averageRank;
+        start = end;
+      }
+      return result;
+    }
+
+    function pearson(x, y) {
+      if (x.length < 2) return null;
+      const xMean = x.reduce((sum, value) => sum + value, 0) / x.length;
+      const yMean = y.reduce((sum, value) => sum + value, 0) / y.length;
+      let numerator = 0, xDenominator = 0, yDenominator = 0;
+      for (let i = 0; i < x.length; i += 1) {
+        const xd = x[i] - xMean;
+        const yd = y[i] - yMean;
+        numerator += xd * yd;
+        xDenominator += xd * xd;
+        yDenominator += yd * yd;
+      }
+      const denominator = Math.sqrt(xDenominator * yDenominator);
+      return denominator ? numerator / denominator : null;
+    }
+
+    function paired(records, xId, yId) {
+      const xIndex = methodIndex.get(xId);
+      const yIndex = methodIndex.get(yId);
+      return records
+        .map((record) => ({ record, x: record.v[xIndex], y: record.v[yIndex] }))
+        .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y));
+    }
+
+    function showTooltip(event, html) {
+      tooltip.innerHTML = html;
+      tooltip.style.left = `${Math.min(event.clientX + 14, window.innerWidth - 290)}px`;
+      tooltip.style.top = `${Math.min(event.clientY + 14, window.innerHeight - 130)}px`;
+      tooltip.classList.add("show");
+    }
+    function hideTooltip() { tooltip.classList.remove("show"); }
+
+    function svgElement(tag, attributes = {}, parent = null) {
+      const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, value));
+      if (parent) parent.appendChild(node);
+      return node;
+    }
+
+    function linePath(points) {
+      return points.map((point, index) => `${index ? "L" : "M"}${point[0].toFixed(2)},${point[1].toFixed(2)}`).join(" ");
+    }
+
+    function filteredRecords() {
+      return DATA.records.filter((record) => {
+        const periodMatch =
+          state.period === "all" ||
+          (state.period === "pre" && record.year <= 2019) ||
+          (state.period === "pandemic" && record.year >= 2020 && record.year <= 2023) ||
+          (state.period === "latest" && record.year === 2024);
+        const groupMatch = state.group === "all" || record.group === state.group;
+        return periodMatch && groupMatch;
+      });
+    }
+
+    function valuesFor(records, methodId) {
+      const index = methodIndex.get(methodId);
+      return records.map((record) => record.v[index]).filter(Number.isFinite);
+    }
+
+    function populateControls() {
+      $("#hero-meta").innerHTML = [
+        `${DATA.meta.rows} 条观测`,
+        `${DATA.meta.ports} 个港口`,
+        `${DATA.meta.yearMin}–${DATA.meta.yearMax}`,
+        `${DATA.meta.methodCount} 条独立 GPE 序列`
+      ].map((label) => `<span class="meta-pill">${label}</span>`).join("");
+
+      $("#group-filter").insertAdjacentHTML(
+        "beforeend",
+        DATA.meta.groups.map((group) => `<option value="${escapeHtml(group)}">${escapeHtml(group)}</option>`).join("")
+      );
+
+      const groupedOptions = familyOrder.map((family) => {
+        const methods = DATA.methods.filter((method) => method.family === family);
+        return `<optgroup label="${methods[0].familyLabel}">${
+          methods.map((method) => `<option value="${method.id}">${method.label}</option>`).join("")
+        }</optgroup>`;
+      }).join("");
+      ["#distribution-method", "#scatter-x", "#scatter-y", "#geo-method"].forEach((selector) => {
+        $(selector).innerHTML = groupedOptions;
+      });
+      $("#distribution-method").value = state.distribution;
+      $("#scatter-x").value = state.scatterX;
+      $("#scatter-y").value = state.scatterY;
+      $("#geo-method").value = state.geoMethod;
+
+      const geoYearInput = $("#geo-year");
+      geoYearInput.min = String(DATA.meta.yearMin);
+      geoYearInput.max = String(DATA.meta.yearMax);
+      geoYearInput.value = String(state.geoYear);
+      $("#geo-year-label").textContent = String(state.geoYear);
+
+      $("#period-filter").addEventListener("change", (event) => {
+        state.period = event.target.value;
+        renderAll();
+      });
+      $("#group-filter").addEventListener("change", (event) => {
+        state.group = event.target.value;
+        renderAll();
+      });
+      $("#distribution-method").addEventListener("change", (event) => {
+        state.distribution = event.target.value;
+        renderDistribution();
+        renderAtlas();
+      });
+      $("#scatter-x").addEventListener("change", (event) => {
+        state.scatterX = event.target.value;
+        renderScatter();
+      });
+      $("#scatter-y").addEventListener("change", (event) => {
+        state.scatterY = event.target.value;
+        renderScatter();
+      });
+      $("#geo-method").addEventListener("change", (event) => {
+        state.geoMethod = event.target.value;
+        renderGeoHeatmap();
+      });
+      $("#geo-year").addEventListener("input", (event) => {
+        state.geoYear = Number(event.target.value);
+        $("#geo-year-label").textContent = String(state.geoYear);
+        renderGeoHeatmap();
+      });
+      $("#geo-play").addEventListener("click", () => {
+        if (state.geoPlaying) {
+          stopGeoPlay();
+        } else {
+          startGeoPlay();
+        }
+      });
+      $("#geo-detail-close").addEventListener("click", () => {
+        state.selectedGroup = null;
+        state.selectedPort = null;
+        renderGeoDetailPanel();
+        renderGeoHeatmap();
+      });
+      $$(".segmented button").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.atlasScale = button.dataset.scale;
+          $$(".segmented button").forEach((item) => item.classList.toggle("active", item === button));
+          renderAtlas();
+        });
+      });
+    }
+
+    function renderOverview() {
+      const findings = DATA.findings;
+      const cards = [
+        {
+          label: "当前普通 SBM 主结果",
+          value: format(findings.ordinaryMean),
+          note: "三阶段 · 疫情调整 · CRS 的全样本均值",
+          color: "#075E59"
+        },
+        {
+          label: "当前 Super-SBM 主结果",
+          value: format(findings.superMean),
+          note: `${findings.superAboveOne} 条观测高于效率前沿基准 1`,
+          color: "#D06645"
+        },
+        {
+          label: "主结果排序一致性",
+          value: format(findings.ordinarySuperSpearman, 4),
+          note: "普通 SBM 与 Super-SBM 的 Spearman 相关",
+          color: "#3F6B8A"
+        },
+        {
+          label: "历史 Selected 均值溢价",
+          value: `${findings.legacyPremiumPct.toFixed(1)}%`,
+          note: "相对当前三阶段疫情调整 CRS；仅描述口径差异",
+          color: "#786B5F"
+        },
+        {
+          label: "普通 vs Super 平均绝对差",
+          value: format(findings.ordinarySuperMae, 4),
+          note: "差异集中在普通 SBM 的效率前沿观测",
+          color: "#D06645",
+          wide: true
+        },
+        {
+          label: "基准环境调整 − 疫情调整",
+          value: format(findings.baseCovidMeanDifference, 4),
+          note: "全样本均值差；不代表疫情的因果效应",
+          color: "#087E72",
+          wide: true
+        }
+      ];
+      $("#summary-grid").innerHTML = cards.map((card) => `
+        <article class="summary-card ${card.wide ? "wide" : ""}">
+          <div>
+            <div class="family-stripe" style="background:${card.color}"></div>
+            <div class="summary-label">${card.label}</div>
+            <div class="summary-value">${card.value}</div>
+          </div>
+          <div class="summary-note">${card.note}</div>
+        </article>
+      `).join("");
+
+      $("#alias-note").innerHTML = `<strong>重复别名已排除：</strong> ${
+        DATA.meta.aliases.map((alias) =>
+          `<code>${alias.alias}</code> = <code>${alias.source}</code>（逐值完全一致）`
+        ).join("；")
+      }。因此图中显示 16 条独立序列，而不是把别名重复计权。`;
+    }
+
+    function renderDistribution() {
+      const records = filteredRecords();
+      const method = methodById.get(state.distribution);
+      const values = valuesFor(records, state.distribution);
+      const stats = summary(values);
+      const container = $("#distribution-chart");
+      container.innerHTML = "";
+      if (!values.length) {
+        container.innerHTML = `<div class="empty">当前筛选无可用观测</div>`;
+        return;
+      }
+
+      const width = Math.max(520, container.clientWidth || 760);
+      const height = 360;
+      const margin = { top: 58, right: 28, bottom: 52, left: 56 };
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+      const min = Math.min(0, stats.min);
+      const max = stats.max === min ? min + 1 : stats.max * 1.04;
+      const x = (value) => margin.left + (value - min) / (max - min) * innerWidth;
+
+      const binsCount = 28;
+      const binWidth = (max - min) / binsCount;
+      const bins = Array.from({ length: binsCount }, (_, index) => ({
+        x0: min + index * binWidth,
+        x1: min + (index + 1) * binWidth,
+        count: 0
+      }));
+      values.forEach((value) => {
+        const index = Math.min(binsCount - 1, Math.max(0, Math.floor((value - min) / binWidth)));
+        bins[index].count += 1;
+      });
+      const yMax = Math.max(...bins.map((bin) => bin.count), 1);
+      const y = (value) => margin.top + innerHeight - value / yMax * innerHeight;
+
+      const svg = svgElement("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": `${method.label}分布` }, container);
+      for (let tick = 0; tick <= 4; tick += 1) {
+        const value = yMax * tick / 4;
+        const yy = y(value);
+        svgElement("line", { x1: margin.left, x2: width - margin.right, y1: yy, y2: yy, class: "grid-line" }, svg);
+        const label = svgElement("text", { x: margin.left - 10, y: yy + 4, "text-anchor": "end", fill: "#53666a", "font-size": 10 }, svg);
+        label.textContent = Math.round(value);
+      }
+      for (let tick = 0; tick <= 5; tick += 1) {
+        const value = min + (max - min) * tick / 5;
+        const xx = x(value);
+        svgElement("line", { x1: xx, x2: xx, y1: margin.top + innerHeight, y2: margin.top + innerHeight + 5, stroke: "#b9b1a1" }, svg);
+        const label = svgElement("text", { x: xx, y: height - 21, "text-anchor": "middle", fill: "#53666a", "font-size": 10 }, svg);
+        label.textContent = format(value, 2);
+      }
+      bins.forEach((bin) => {
+        const rect = svgElement("rect", {
+          x: x(bin.x0) + 1,
+          y: y(bin.count),
+          width: Math.max(1, x(bin.x1) - x(bin.x0) - 2),
+          height: margin.top + innerHeight - y(bin.count),
+          rx: 2,
+          fill: method.color,
+          opacity: 0.68
+        }, svg);
+        rect.addEventListener("mousemove", (event) =>
+          showTooltip(event, `<strong>${format(bin.x0, 3)}–${format(bin.x1, 3)}</strong><br>${bin.count} 条观测`)
+        );
+        rect.addEventListener("mouseleave", hideTooltip);
+      });
+
+      const bandwidth = Math.max(stats.sd * 1.06 * values.length ** -0.2, (max - min) / 80);
+      const densityPoints = Array.from({ length: 100 }, (_, index) => {
+        const value = min + (max - min) * index / 99;
+        const density = values.reduce((sum, observation) => {
+          const z = (value - observation) / bandwidth;
+          return sum + Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI);
+        }, 0) / (values.length * bandwidth);
+        const equivalentCount = density * values.length * binWidth;
+        return [x(value), y(equivalentCount)];
+      });
+      svgElement("path", {
+        d: linePath(densityPoints),
+        fill: "none",
+        stroke: "#16333a",
+        "stroke-width": 2.2,
+        "stroke-linejoin": "round"
+      }, svg);
+
+      if (min <= 1 && max >= 1) {
+        svgElement("line", { x1: x(1), x2: x(1), y1: margin.top, y2: margin.top + innerHeight, class: "reference-line" }, svg);
+        const label = svgElement("text", { x: x(1) + 5, y: margin.top + 12, fill: "#8f4b31", "font-size": 10 }, svg);
+        label.textContent = "效率前沿 = 1";
+      }
+
+      const boxY = 24;
+      svgElement("line", { x1: x(stats.min), x2: x(stats.max), y1: boxY, y2: boxY, stroke: method.color, "stroke-width": 1.5 }, svg);
+      svgElement("rect", { x: x(stats.q1), y: boxY - 8, width: Math.max(1, x(stats.q3) - x(stats.q1)), height: 16, fill: method.color, opacity: 0.2, stroke: method.color }, svg);
+      svgElement("line", { x1: x(stats.median), x2: x(stats.median), y1: boxY - 9, y2: boxY + 9, stroke: method.color, "stroke-width": 2 }, svg);
+      [stats.min, stats.max].forEach((value) => svgElement("line", { x1: x(value), x2: x(value), y1: boxY - 5, y2: boxY + 5, stroke: method.color }, svg));
+
+      const xLabel = svgElement("text", { x: margin.left + innerWidth / 2, y: height - 3, "text-anchor": "middle", fill: "#53666a", "font-size": 11 }, svg);
+      xLabel.textContent = "GPE 效率值";
+      const yLabel = svgElement("text", { x: 13, y: margin.top + innerHeight / 2, transform: `rotate(-90 13 ${margin.top + innerHeight / 2})`, "text-anchor": "middle", fill: "#53666a", "font-size": 11 }, svg);
+      yLabel.textContent = "频数";
+
+      $("#distribution-stats").innerHTML = `
+        <h3>${method.label}</h3>
+        <div class="column-name">${method.column}</div>
+        <div class="stat-list">
+          ${[
+            ["N", stats.n], ["均值", format(stats.mean)], ["中位数", format(stats.median)],
+            ["标准差", format(stats.sd)], ["P25", format(stats.q1)], ["P75", format(stats.q3)],
+            ["最大值", format(stats.max)], [">1", stats.aboveOne]
+          ].map(([label, value]) => `<div class="stat-item"><span>${label}</span><strong>${value}</strong></div>`).join("")}
+        </div>
+        <div class="method-note">${method.note}</div>
+      `;
+    }
+
+    function miniHistogram(values, method, sharedMax) {
+      const stats = summary(values);
+      const width = 250, height = 74, margin = 3;
+      const max = state.atlasScale === "shared" ? sharedMax : Math.max(stats.max * 1.03, 1);
+      const binsCount = 16;
+      const bins = Array(binsCount).fill(0);
+      values.forEach((value) => {
+        const index = Math.min(binsCount - 1, Math.max(0, Math.floor(value / max * binsCount)));
+        bins[index] += 1;
+      });
+      const yMax = Math.max(...bins, 1);
+      const bars = bins.map((count, index) => {
+        const barWidth = (width - 2 * margin) / binsCount;
+        const barHeight = (height - 14) * count / yMax;
+        return `<rect x="${margin + index * barWidth + 0.8}" y="${height - 7 - barHeight}" width="${Math.max(1, barWidth - 1.6)}" height="${barHeight}" rx="1.5" fill="${method.color}" opacity="0.72"/>`;
+      }).join("");
+      const reference = max >= 1
+        ? `<line x1="${margin + (width - 2 * margin) / max}" x2="${margin + (width - 2 * margin) / max}" y1="4" y2="${height - 7}" stroke="#d06645" stroke-dasharray="3 3"/>`
+        : "";
+      return `<svg viewBox="0 0 ${width} ${height}" aria-hidden="true">${bars}${reference}<line x1="${margin}" x2="${width - margin}" y1="${height - 7}" y2="${height - 7}" stroke="#b9b1a1"/></svg>`;
+    }
+
+    function renderAtlas() {
+      const records = filteredRecords();
+      const allValues = DATA.methods.flatMap((method) => valuesFor(records, method.id));
+      const sharedMax = Math.max(...allValues, 1) * 1.03;
+      $("#distribution-atlas").innerHTML = DATA.methods.map((method) => {
+        const values = valuesFor(records, method.id);
+        const stats = summary(values);
+        return `
+          <article class="mini-card ${state.distribution === method.id ? "active" : ""}" tabindex="0" data-method="${method.id}">
+            <div class="mini-head">
+              <div class="mini-title">${method.label}</div>
+              <div class="mini-code">${method.short}</div>
+            </div>
+            <div class="mini-chart">${miniHistogram(values, method, sharedMax)}</div>
+            <div class="mini-stats"><span>均值 ${format(stats.mean)}</span><span>中位 ${format(stats.median)}</span><span>max ${format(stats.max, 2)}</span></div>
+          </article>
+        `;
+      }).join("");
+      $$(".mini-card").forEach((card) => {
+        const activate = () => {
+          state.distribution = card.dataset.method;
+          $("#distribution-method").value = state.distribution;
+          renderDistribution();
+          renderAtlas();
+          $("#distribution").scrollIntoView({ behavior: "smooth", block: "start" });
+        };
+        card.addEventListener("click", activate);
+        card.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") activate();
+        });
+      });
+    }
+
+    function renderScatter() {
+      const records = filteredRecords();
+      const xMethod = methodById.get(state.scatterX);
+      const yMethod = methodById.get(state.scatterY);
+      const points = paired(records, state.scatterX, state.scatterY);
+      const container = $("#scatter-chart");
+      container.innerHTML = "";
+      if (!points.length) {
+        container.innerHTML = `<div class="empty">当前筛选无可用观测</div>`;
+        return;
+      }
+      const width = Math.max(560, container.clientWidth || 760);
+      const height = 470;
+      const margin = { top: 24, right: 25, bottom: 70, left: 68 };
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+      const max = Math.max(...points.flatMap((point) => [point.x, point.y]), 1) * 1.04;
+      const scaleX = (value) => margin.left + value / max * innerWidth;
+      const scaleY = (value) => margin.top + innerHeight - value / max * innerHeight;
+      const svg = svgElement("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": `${xMethod.label}与${yMethod.label}散点比较` }, container);
+
+      for (let tick = 0; tick <= 5; tick += 1) {
+        const value = max * tick / 5;
+        const xx = scaleX(value), yy = scaleY(value);
+        svgElement("line", { x1: xx, x2: xx, y1: margin.top, y2: margin.top + innerHeight, class: "grid-line" }, svg);
+        svgElement("line", { x1: margin.left, x2: margin.left + innerWidth, y1: yy, y2: yy, class: "grid-line" }, svg);
+        const xText = svgElement("text", { x: xx, y: height - 43, "text-anchor": "middle", fill: "#53666a", "font-size": 10 }, svg);
+        xText.textContent = format(value, 2);
+        const yText = svgElement("text", { x: margin.left - 10, y: yy + 4, "text-anchor": "end", fill: "#53666a", "font-size": 10 }, svg);
+        yText.textContent = format(value, 2);
+      }
+      svgElement("line", { x1: scaleX(0), y1: scaleY(0), x2: scaleX(max), y2: scaleY(max), stroke: "#8f4b31", "stroke-width": 1.4, "stroke-dasharray": "6 5" }, svg);
+
+      const periodColor = (year) => year <= 2019 ? "#3F6B8A" : year <= 2023 ? "#D06645" : "#087E72";
+      points.forEach((point) => {
+        const circle = svgElement("circle", {
+          cx: scaleX(point.x),
+          cy: scaleY(point.y),
+          r: 3.1,
+          fill: periodColor(point.record.year),
+          opacity: 0.5,
+          stroke: "rgba(255,255,255,0.55)",
+          "stroke-width": 0.5
+        }, svg);
+        circle.addEventListener("mousemove", (event) => showTooltip(event,
+          `<strong>${escapeHtml(point.record.port)} · ${point.record.year}</strong><br>` +
+          `${escapeHtml(xMethod.short)} = ${format(point.x, 4)}<br>` +
+          `${escapeHtml(yMethod.short)} = ${format(point.y, 4)}`
+        ));
+        circle.addEventListener("mouseleave", hideTooltip);
+      });
+      const xLabel = svgElement("text", { x: margin.left + innerWidth / 2, y: height - 8, "text-anchor": "middle", fill: "#16333a", "font-size": 11 }, svg);
+      xLabel.textContent = xMethod.label;
+      const yLabel = svgElement("text", { x: 17, y: margin.top + innerHeight / 2, transform: `rotate(-90 17 ${margin.top + innerHeight / 2})`, "text-anchor": "middle", fill: "#16333a", "font-size": 11 }, svg);
+      yLabel.textContent = yMethod.label;
+
+      const xValues = points.map((point) => point.x);
+      const yValues = points.map((point) => point.y);
+      const differences = yValues.map((value, index) => value - xValues[index]);
+      const metrics = {
+        pearson: pearson(xValues, yValues),
+        spearman: pearson(ranks(xValues), ranks(yValues)),
+        mae: differences.reduce((sum, value) => sum + Math.abs(value), 0) / differences.length,
+        bias: differences.reduce((sum, value) => sum + value, 0) / differences.length
+      };
+      $("#comparison-stats").innerHTML = [
+        ["Pearson r", format(metrics.pearson, 4)],
+        ["Spearman ρ", format(metrics.spearman, 4)],
+        ["平均绝对差", format(metrics.mae, 4)],
+        ["纵轴 − 横轴", format(metrics.bias, 4)]
+      ].map(([label, value]) => `<div class="metric"><span>${label}</span><strong>${value}</strong></div>`).join("");
+      $("#pair-reading").innerHTML =
+        metrics.spearman > 0.98
+          ? `两种方法的排序几乎一致（ρ=${format(metrics.spearman, 3)}），差别主要体现在效率值尺度或前沿观测。`
+          : metrics.spearman > 0.9
+            ? `两种方法保持较强排序一致性（ρ=${format(metrics.spearman, 3)}），但个别港口—年份的相对位置发生变化。`
+            : `排序一致性为中等或偏弱（ρ=${format(metrics.spearman, 3)}），应把该组合列入来源或模型敏感性讨论。`;
+    }
+
+    function correlationMatrix(records) {
+      return DATA.methods.map((rowMethod) =>
+        DATA.methods.map((columnMethod) => {
+          const points = paired(records, rowMethod.id, columnMethod.id);
+          return pearson(points.map((point) => point.x), points.map((point) => point.y));
+        })
+      );
+    }
+
+    function correlationColor(value) {
+      const t = Math.max(0, Math.min(1, (value - 0.65) / 0.35));
+      const start = [242, 234, 223], end = [8, 111, 112];
+      return `rgb(${start.map((channel, index) => Math.round(channel + (end[index] - channel) * t)).join(",")})`;
+    }
+
+    function renderHeatmap() {
+      const records = filteredRecords();
+      const matrix = correlationMatrix(records);
+      const cell = 34, left = 122, top = 116;
+      const size = cell * DATA.methods.length;
+      const width = left + size + 16, height = top + size + 20;
+      const container = $("#heatmap");
+      container.innerHTML = "";
+      const svg = svgElement("svg", { width, height, viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "GPE方法相关矩阵" }, container);
+      DATA.methods.forEach((method, index) => {
+        const xText = svgElement("text", {
+          x: left + index * cell + cell / 2,
+          y: top - 10,
+          transform: `rotate(-55 ${left + index * cell + cell / 2} ${top - 10})`,
+          "text-anchor": "start",
+          fill: "#53666a",
+          "font-size": 9,
+          "font-weight": 700
+        }, svg);
+        xText.textContent = method.short;
+        const yText = svgElement("text", {
+          x: left - 8,
+          y: top + index * cell + cell / 2 + 3,
+          "text-anchor": "end",
+          fill: "#53666a",
+          "font-size": 9,
+          "font-weight": 700
+        }, svg);
+        yText.textContent = method.short;
+      });
+      matrix.forEach((row, rowIndex) => row.forEach((value, columnIndex) => {
+        const rect = svgElement("rect", {
+          x: left + columnIndex * cell,
+          y: top + rowIndex * cell,
+          width: cell - 1,
+          height: cell - 1,
+          rx: 3,
+          fill: correlationColor(value),
+          tabindex: 0,
+          role: "button",
+          "aria-label": `${DATA.methods[rowIndex].label}与${DATA.methods[columnIndex].label}相关系数${format(value, 3)}`
+        }, svg);
+        const show = (event) => showTooltip(event,
+          `<strong>${DATA.methods[rowIndex].label}</strong><br>× ${DATA.methods[columnIndex].label}<br>Pearson r = ${format(value, 4)}`
+        );
+        rect.addEventListener("mousemove", show);
+        rect.addEventListener("mouseleave", hideTooltip);
+        rect.addEventListener("click", () => {
+          state.scatterX = DATA.methods[columnIndex].id;
+          state.scatterY = DATA.methods[rowIndex].id;
+          $("#scatter-x").value = state.scatterX;
+          $("#scatter-y").value = state.scatterY;
+          renderScatter();
+          $("#comparison").scrollIntoView({ behavior: "smooth" });
+        });
+        if (rowIndex === columnIndex || value < 0.88) {
+          const label = svgElement("text", {
+            x: left + columnIndex * cell + cell / 2,
+            y: top + rowIndex * cell + cell / 2 + 3,
+            "text-anchor": "middle",
+            fill: value > 0.87 ? "#fff" : "#16333a",
+            "font-size": 8
+          }, svg);
+          label.textContent = format(value, 2);
+          label.style.pointerEvents = "none";
+        }
+      }));
+    }
+
+    function renderTrendControls() {
+      $("#trend-controls").innerHTML = DATA.methods.map((method) => `
+        <label class="method-toggle">
+          <input type="checkbox" value="${method.id}" ${state.trend.includes(method.id) ? "checked" : ""}>
+          <span class="dot" style="background:${method.color}"></span>
+          ${method.short}
+        </label>
+      `).join("");
+      $$("#trend-controls input").forEach((input) => {
+        input.addEventListener("change", () => {
+          if (input.checked) {
+            if (state.trend.length >= 4) {
+              input.checked = false;
+              return;
+            }
+            state.trend.push(input.value);
+          } else {
+            state.trend = state.trend.filter((id) => id !== input.value);
+          }
+          renderTrend();
+        });
+      });
+    }
+
+    function renderTrend() {
+      const records = filteredRecords();
+      const container = $("#trend-chart");
+      container.innerHTML = "";
+      if (!state.trend.length || !records.length) {
+        container.innerHTML = `<div class="empty">请选择至少一种方法</div>`;
+        return;
+      }
+      const years = [...new Set(records.map((record) => record.year))].sort((a, b) => a - b);
+      const series = state.trend.map((id) => {
+        const method = methodById.get(id);
+        const index = methodIndex.get(id);
+        return {
+          method,
+          points: years.map((year) => {
+            const values = records.filter((record) => record.year === year).map((record) => record.v[index]).filter(Number.isFinite);
+            return { year, q1: quantile(values, 0.25), median: quantile(values, 0.5), q3: quantile(values, 0.75), n: values.length };
+          }).filter((point) => point.n)
+        };
+      });
+      const width = Math.max(580, container.clientWidth || 900);
+      const height = 430;
+      const margin = { top: 25, right: 30, bottom: 55, left: 60 };
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+      const yMax = Math.max(...series.flatMap((item) => item.points.map((point) => point.q3)), 0.1) * 1.16;
+      const x = (year) => margin.left + (year - years[0]) / Math.max(1, years.at(-1) - years[0]) * innerWidth;
+      const y = (value) => margin.top + innerHeight - value / yMax * innerHeight;
+      const svg = svgElement("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "GPE年度中位数趋势" }, container);
+      for (let tick = 0; tick <= 5; tick += 1) {
+        const value = yMax * tick / 5;
+        const yy = y(value);
+        svgElement("line", { x1: margin.left, x2: margin.left + innerWidth, y1: yy, y2: yy, class: "grid-line" }, svg);
+        const label = svgElement("text", { x: margin.left - 10, y: yy + 4, "text-anchor": "end", fill: "#53666a", "font-size": 10 }, svg);
+        label.textContent = format(value, 2);
+      }
+      years.forEach((year) => {
+        const xx = x(year);
+        const label = svgElement("text", { x: xx, y: height - 24, "text-anchor": "middle", fill: "#53666a", "font-size": 9 }, svg);
+        label.textContent = year;
+      });
+      series.forEach(({ method, points }) => {
+        const upper = points.map((point) => [x(point.year), y(point.q3)]);
+        const lower = points.slice().reverse().map((point) => [x(point.year), y(point.q1)]);
+        svgElement("path", {
+          d: `${linePath(upper)} ${lower.map((point, index) => `${index ? "L" : "L"}${point[0].toFixed(2)},${point[1].toFixed(2)}`).join(" ")} Z`,
+          fill: method.color,
+          opacity: 0.09,
+          stroke: "none"
+        }, svg);
+        svgElement("path", {
+          d: linePath(points.map((point) => [x(point.year), y(point.median)])),
+          fill: "none",
+          stroke: method.color,
+          "stroke-width": 2.2,
+          "stroke-linecap": "round",
+          "stroke-linejoin": "round"
+        }, svg);
+        points.forEach((point) => {
+          const circle = svgElement("circle", { cx: x(point.year), cy: y(point.median), r: 3.3, fill: method.color, stroke: "#fffdf7", "stroke-width": 1 }, svg);
+          circle.addEventListener("mousemove", (event) => showTooltip(event,
+            `<strong>${method.label} · ${point.year}</strong><br>中位数 ${format(point.median, 4)}<br>IQR ${format(point.q1, 4)}–${format(point.q3, 4)}<br>N=${point.n}`
+          ));
+          circle.addEventListener("mouseleave", hideTooltip);
+        });
+      });
+    }
+
+    function geoValueRange(methodId) {
+      const index = methodIndex.get(methodId);
+      const values = DATA.records.map((record) => record.v[index]).filter(Number.isFinite);
+      return { min: Math.min(...values), max: Math.max(...values) };
+    }
+
+    function geoPointsForYear(year, methodId) {
+      const index = methodIndex.get(methodId);
+      return DATA.records
+        .filter((record) => record.year === year)
+        .map((record) => {
+          const coord = portCoordByName.get(record.port);
+          const value = record.v[index];
+          if (!coord || !Number.isFinite(value)) return null;
+          return { ...coord, value, record };
+        })
+        .filter(Boolean);
+    }
+
+    function geoProject(lat, lon, width, height, margin) {
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+      const x = margin.left + (lon - GEO_BOUNDS.minLon) / (GEO_BOUNDS.maxLon - GEO_BOUNDS.minLon) * innerWidth;
+      const y = margin.top + (GEO_BOUNDS.maxLat - lat) / (GEO_BOUNDS.maxLat - GEO_BOUNDS.minLat) * innerHeight;
+      return [x, y];
+    }
+
+    function geoLonLat(x, y, width, height, margin) {
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+      const lon = GEO_BOUNDS.minLon + (x - margin.left) / innerWidth * (GEO_BOUNDS.maxLon - GEO_BOUNDS.minLon);
+      const lat = GEO_BOUNDS.maxLat - (y - margin.top) / innerHeight * (GEO_BOUNDS.maxLat - GEO_BOUNDS.minLat);
+      return { lat, lon };
+    }
+
+    function idwValue(lat, lon, points, power = 2) {
+      let numerator = 0;
+      let denominator = 0;
+      for (const point of points) {
+        const distanceSq = (lat - point.lat) ** 2 + (lon - point.lon) ** 2;
+        if (distanceSq < 1e-8) return point.value;
+        const weight = 1 / distanceSq ** (power / 2);
+        numerator += weight * point.value;
+        denominator += weight;
+      }
+      return denominator ? numerator / denominator : null;
+    }
+
+    function gpeHeatColor(value, min, max) {
+      const span = Math.max(max - min, 1e-6);
+      const t = Math.max(0, Math.min(1, (value - min) / span));
+      const stops = [
+        { t: 0.0, c: [245, 249, 252] },
+        { t: 0.22, c: [186, 224, 232] },
+        { t: 0.48, c: [72, 178, 168] },
+        { t: 0.72, c: [8, 126, 114] },
+        { t: 1.0, c: [208, 102, 69] }
+      ];
+      let left = stops[0];
+      let right = stops[stops.length - 1];
+      for (let i = 0; i < stops.length - 1; i += 1) {
+        if (t >= stops[i].t && t <= stops[i + 1].t) {
+          left = stops[i];
+          right = stops[i + 1];
+          break;
+        }
+      }
+      const localT = (t - left.t) / Math.max(right.t - left.t, 1e-6);
+      const rgb = left.c.map((channel, index) => Math.round(channel + (right.c[index] - channel) * localT));
+      return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+    }
+
+    function heatRGBA(rgbString, alpha) {
+      const match = rgbString.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      if (!match) return `rgba(8, 126, 114, ${alpha})`;
+      return `rgba(${match[1]}, ${match[2]}, ${match[3]}, ${alpha})`;
+    }
+
+    function pointInLand(lat, lon) {
+      return DATA.mapLayers.provinces.some((province) =>
+        province.rings.some((ring) => {
+          let inside = false;
+          for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+            const [xi, yi] = ring[i];
+            const [xj, yj] = ring[j];
+            const intersect = ((yi > lat) !== (yj > lat))
+              && (lon < ((xj - xi) * (lat - yi)) / ((yj - yi) || 1e-12) + xi);
+            if (intersect) inside = !inside;
+          }
+          return inside;
+        })
+      );
+    }
+
+    function renderHeatCanvas(canvas, width, height, margin, points, min, max) {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.save();
+      ctx.beginPath();
+      DATA.mapLayers.provinces.forEach((province) => {
+        province.rings.forEach((ring) => {
+          ring.forEach(([lon, lat], index) => {
+            const [x, y] = geoProject(lat, lon, width, height, margin);
+            if (index === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.closePath();
+        });
+      });
+      ctx.clip();
+
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+      const gridCols = 96;
+      const gridRows = 68;
+      const cellWidth = innerWidth / gridCols;
+      const cellHeight = innerHeight / gridRows;
+      for (let row = 0; row < gridRows; row += 1) {
+        for (let col = 0; col < gridCols; col += 1) {
+          const cx = margin.left + (col + 0.5) * cellWidth;
+          const cy = margin.top + (row + 0.5) * cellHeight;
+          const { lat, lon } = geoLonLat(cx, cy, width, height, margin);
+          if (!pointInLand(lat, lon)) continue;
+          const value = idwValue(lat, lon, points, 2.4);
+          if (!Number.isFinite(value)) continue;
+          ctx.fillStyle = heatRGBA(gpeHeatColor(value, min, max), 0.58);
+          ctx.fillRect(margin.left + col * cellWidth, margin.top + row * cellHeight, cellWidth + 1, cellHeight + 1);
+        }
+      }
+
+      points.forEach((point) => {
+        const [x, y] = geoProject(point.lat, point.lon, width, height, margin);
+        const intensity = (point.value - min) / Math.max(max - min, 1e-6);
+        const radius = 34 + intensity * 24;
+        const color = gpeHeatColor(point.value, min, max);
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+        gradient.addColorStop(0, heatRGBA(color, 0.92));
+        gradient.addColorStop(0.35, heatRGBA(color, 0.58));
+        gradient.addColorStop(0.72, heatRGBA(color, 0.18));
+        gradient.addColorStop(1, heatRGBA(color, 0));
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.restore();
+    }
+
+    function selectPortGroup(groupId) {
+      state.selectedGroup = groupId;
+      state.selectedPort = null;
+      renderGeoDetailPanel();
+      renderGeoHeatmap();
+    }
+
+    function selectPort(portName) {
+      state.selectedPort = portName;
+      renderGeoDetailPanel();
+      renderGeoHeatmap();
+    }
+
+    function renderGeoDetailPanel() {
+      const panel = $("#geo-detail-panel");
+      if (!state.selectedGroup) {
+        panel.hidden = true;
+        return;
+      }
+      const group = portGroupById.get(state.selectedGroup);
+      const method = methodById.get(state.geoMethod);
+      const index = methodIndex.get(state.geoMethod);
+      const yearValues = new Map(
+        DATA.records
+          .filter((record) => record.year === state.geoYear && record.group === group.id)
+          .map((record) => [record.port, record.v[index]])
+      );
+      panel.hidden = false;
+      $("#geo-detail-title").textContent = group.name;
+      $("#geo-detail-subtitle").textContent =
+        `${state.geoYear} 年 · ${method.label} · ${group.ports.length} 个港口 · 点击港口查看类型与 GPE`;
+      $("#geo-detail-ports").innerHTML = group.ports.map((port) => {
+        const value = yearValues.get(port.port);
+        const active = state.selectedPort === port.port ? " active" : "";
+        return `
+          <article class="geo-port-card${active}" data-port="${escapeHtml(port.port)}">
+            <strong>${escapeHtml(port.port)}</strong>
+            <span>${escapeHtml(port.city)} · ${escapeHtml(port.province)}</span>
+            <span>港口类型：${escapeHtml(port.portType)}</span>
+            <span>GPE：${format(value, 4)}</span>
+          </article>
+        `;
+      }).join("");
+      $$("#geo-detail-ports .geo-port-card").forEach((card) => {
+        card.addEventListener("click", () => selectPort(card.dataset.port));
+      });
+
+      const detail = $("#geo-port-detail");
+      if (!state.selectedPort) {
+        detail.hidden = true;
+        detail.innerHTML = "";
+        return;
+      }
+      const port = group.ports.find((item) => item.port === state.selectedPort);
+      const value = yearValues.get(state.selectedPort);
+      detail.hidden = false;
+      detail.innerHTML = `
+        <strong>${escapeHtml(port.port)}</strong>（${escapeHtml(port.city)}，${escapeHtml(port.province)}）<br>
+        港口群：<strong>${escapeHtml(group.name)}</strong><br>
+        港口类型：<strong>${escapeHtml(port.portType)}</strong><br>
+        ${state.geoYear} 年 · ${escapeHtml(method.label)} · GPE <strong>${format(value, 4)}</strong>
+      `;
+    }
+
+    function renderPortGroupLayers(svg, width, height, margin) {
+      const layer = svgElement("g", {}, svg);
+      DATA.portGroups.forEach((group) => {
+        const active = state.selectedGroup === group.id;
+        const hullPath = ringsToPath([group.hull], width, height, margin);
+        const region = svgElement("path", {
+          d: hullPath,
+          fill: group.color,
+          opacity: active ? 0.16 : 0.08,
+          stroke: group.color,
+          "stroke-width": active ? 2 : 1.1,
+          "stroke-opacity": active ? 0.72 : 0.42,
+          class: "geo-group-region"
+        }, layer);
+        region.addEventListener("click", () => selectPortGroup(group.id));
+
+        const [lon, lat] = group.label;
+        const [x, y] = geoProject(lat, lon, width, height, margin);
+        const badge = svgElement("g", { class: `geo-group-badge${active ? " active" : ""}` }, layer);
+        const textWidth = Math.max(58, group.shortName.length * 10 + 18);
+        svgElement("rect", {
+          x: x - textWidth / 2,
+          y: y - 12,
+          width: textWidth,
+          height: 24,
+          rx: 12,
+          fill: "rgba(255, 253, 247, 0.94)",
+          stroke: group.color,
+          "stroke-width": active ? 2 : 1.2
+        }, badge);
+        const label = svgElement("text", {
+          x,
+          y: y + 4,
+          "text-anchor": "middle",
+          fill: group.color,
+          "font-size": 10,
+          "font-weight": 700
+        }, badge);
+        label.textContent = group.shortName;
+        badge.addEventListener("click", (event) => {
+          event.stopPropagation();
+          selectPortGroup(group.id);
+        });
+      });
+    }
+
+    function shortAdminName(name) {
+      return String(name)
+        .replace("壮族自治区", "")
+        .replace("回族自治区", "")
+        .replace("维吾尔自治区", "")
+        .replace("特别行政区", "")
+        .replace("自治区", "")
+        .replace("省", "")
+        .replace("市", "");
+    }
+
+    function ringsToPath(rings, width, height, margin) {
+      return rings.map((ring) => {
+        const points = ring.map(([lon, lat]) => geoProject(lat, lon, width, height, margin));
+        return points.map((point, index) => `${index ? "L" : "M"}${point[0].toFixed(1)},${point[1].toFixed(1)}`).join(" ") + " Z";
+      }).join(" ");
+    }
+
+    function renderGeoLandLayers(svg, width, height, margin) {
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+      const clipId = `geo-land-clip-${state.geoYear}-${state.geoMethod}`;
+      const defs = svgElement("defs", {}, svg);
+      const clipPath = svgElement("clipPath", { id: clipId }, defs);
+      DATA.mapLayers.provinces.forEach((province) => {
+        svgElement("path", { d: ringsToPath(province.rings, width, height, margin) }, clipPath);
+      });
+
+      svgElement("rect", {
+        x: margin.left,
+        y: margin.top,
+        width: innerWidth,
+        height: innerHeight,
+        rx: 12,
+        class: "map-ocean"
+      }, svg);
+
+      const fillGroup = svgElement("g", {}, svg);
+      DATA.mapLayers.provinces.forEach((province) => {
+        svgElement("path", {
+          d: ringsToPath(province.rings, width, height, margin),
+          fill: province.fill || "#F6F2EA",
+          class: "map-province-fill"
+        }, fillGroup);
+      });
+
+      for (let row = 0; row <= 4; row += 1) {
+        const lat = GEO_BOUNDS.minLat + (GEO_BOUNDS.maxLat - GEO_BOUNDS.minLat) * row / 4;
+        const [, yy] = geoProject(lat, GEO_BOUNDS.minLon, width, height, margin);
+        svgElement("line", { x1: margin.left, x2: margin.left + innerWidth, y1: yy, y2: yy, class: "grid-line", opacity: 0.45 }, svg);
+        const label = svgElement("text", { x: margin.left - 8, y: yy + 3, "text-anchor": "end", fill: "#7a8b90", "font-size": 8.5 }, svg);
+        label.textContent = `${lat.toFixed(0)}°N`;
+      }
+      for (let col = 0; col <= 5; col += 1) {
+        const lon = GEO_BOUNDS.minLon + (GEO_BOUNDS.maxLon - GEO_BOUNDS.minLon) * col / 5;
+        const [xx] = geoProject(GEO_BOUNDS.minLat, lon, width, height, margin);
+        svgElement("line", { x1: xx, x2: xx, y1: margin.top, y2: margin.top + innerHeight, class: "grid-line", opacity: 0.45 }, svg);
+        const label = svgElement("text", { x: xx, y: height - 12, "text-anchor": "middle", fill: "#7a8b90", "font-size": 8.5 }, svg);
+        label.textContent = `${lon.toFixed(0)}°E`;
+      }
+
+      return clipId;
+    }
+
+    function renderGeoMapOverlays(svg, width, height, margin) {
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+
+      const districtGroup = svgElement("g", {}, svg);
+      (DATA.mapLayers.districts || []).forEach((district) => {
+        svgElement("path", {
+          d: ringsToPath(district.rings, width, height, margin),
+          class: "map-district-border"
+        }, districtGroup);
+      });
+
+      const prefectureGroup = svgElement("g", {}, svg);
+      DATA.mapLayers.prefectures.forEach((prefecture) => {
+        svgElement("path", {
+          d: ringsToPath(prefecture.rings, width, height, margin),
+          class: "map-prefecture-border"
+        }, prefectureGroup);
+      });
+
+      const provinceBorderGroup = svgElement("g", {}, svg);
+      DATA.mapLayers.provinces.forEach((province) => {
+        svgElement("path", {
+          d: ringsToPath(province.rings, width, height, margin),
+          class: "map-province-border"
+        }, provinceBorderGroup);
+      });
+
+      const labelGroup = svgElement("g", {}, svg);
+      DATA.mapLayers.provinces.forEach((province) => {
+        if (!province.label) return;
+        const [lon, lat] = province.label;
+        const [x, y] = geoProject(lat, lon, width, height, margin);
+        const label = svgElement("text", {
+          x,
+          y,
+          "text-anchor": "middle",
+          class: "map-label"
+        }, labelGroup);
+        label.textContent = shortAdminName(province.name);
+      });
+
+      svgElement("rect", {
+        x: margin.left,
+        y: margin.top,
+        width: innerWidth,
+        height: innerHeight,
+        rx: 12,
+        class: "map-frame"
+      }, svg);
+
+      const scaleKm = 200;
+      const scaleLon = scaleKm / (111.32 * Math.cos(((GEO_BOUNDS.minLat + GEO_BOUNDS.maxLat) / 2) * Math.PI / 180));
+      const scaleStart = geoProject(GEO_BOUNDS.minLat + 1.2, GEO_BOUNDS.maxLon - scaleLon - 0.35, width, height, margin);
+      const scaleEnd = geoProject(GEO_BOUNDS.minLat + 1.2, GEO_BOUNDS.maxLon - 0.35, width, height, margin);
+      svgElement("line", {
+        x1: scaleStart[0],
+        y1: scaleStart[1],
+        x2: scaleEnd[0],
+        y2: scaleEnd[1],
+        stroke: "#53666a",
+        "stroke-width": 1.4,
+        "stroke-linecap": "round"
+      }, svg);
+      svgElement("line", { x1: scaleStart[0], y1: scaleStart[1] - 4, x2: scaleStart[0], y2: scaleStart[1] + 4, stroke: "#53666a", "stroke-width": 1.2 }, svg);
+      svgElement("line", { x1: scaleEnd[0], y1: scaleEnd[1] - 4, x2: scaleEnd[0], y2: scaleEnd[1] + 4, stroke: "#53666a", "stroke-width": 1.2 }, svg);
+      const scaleLabel = svgElement("text", {
+        x: (scaleStart[0] + scaleEnd[0]) / 2,
+        y: scaleStart[1] - 7,
+        "text-anchor": "middle",
+        class: "map-scale"
+      }, svg);
+      scaleLabel.textContent = `${scaleKm} km`;
+
+      const northX = margin.left + innerWidth - 22;
+      const northY = margin.top + 24;
+      svgElement("line", { x1: northX, y1: northY + 16, x2: northX, y2: northY - 4, stroke: "#16333a", "stroke-width": 1.3 }, svg);
+      svgElement("polygon", { points: `${northX},${northY - 10} ${northX - 4},${northY} ${northX + 4},${northY}`, fill: "#16333a" }, svg);
+      const northLabel = svgElement("text", { x: northX, y: northY + 28, "text-anchor": "middle", class: "map-scale" }, svg);
+      northLabel.textContent = "N";
+    }
+
+    function stopGeoPlay() {
+      state.geoPlaying = false;
+      if (geoPlayTimer) {
+        clearInterval(geoPlayTimer);
+        geoPlayTimer = null;
+      }
+      const button = $("#geo-play");
+      button.textContent = "▶ 播放";
+      button.classList.remove("playing");
+      button.setAttribute("aria-label", "播放年度动画");
+    }
+
+    function startGeoPlay() {
+      stopGeoPlay();
+      state.geoPlaying = true;
+      const button = $("#geo-play");
+      button.textContent = "⏸ 暂停";
+      button.classList.add("playing");
+      button.setAttribute("aria-label", "暂停年度动画");
+      geoPlayTimer = setInterval(() => {
+        const nextYear = state.geoYear >= DATA.meta.yearMax ? DATA.meta.yearMin : state.geoYear + 1;
+        state.geoYear = nextYear;
+        $("#geo-year").value = String(nextYear);
+        $("#geo-year-label").textContent = String(nextYear);
+        renderGeoHeatmap();
+      }, 900);
+    }
+
+    function renderGeoHeatmap() {
+      const container = $("#geo-heatmap-chart");
+      const method = methodById.get(state.geoMethod);
+      const points = geoPointsForYear(state.geoYear, state.geoMethod);
+      container.innerHTML = "";
+      if (!points.length) {
+        container.innerHTML = `<div class="empty">${state.geoYear} 年无可用港口观测</div>`;
+        $("#geo-summary").innerHTML = "";
+        return;
+      }
+
+      const width = Math.max(560, container.clientWidth || 920);
+      const height = Math.round(width * 0.72);
+      const margin = { top: 28, right: 24, bottom: 42, left: 54 };
+      const { min, max } = geoValueRange(state.geoMethod);
+
+      const stage = document.createElement("div");
+      stage.className = "geo-map-stage";
+      stage.style.height = `${height}px`;
+      const canvas = document.createElement("canvas");
+      canvas.className = "geo-heat-canvas";
+      const svg = svgElement("svg", {
+        viewBox: `0 0 ${width} ${height}`,
+        role: "img",
+        "aria-label": `${state.geoYear}年全国港口GPE热力图`
+      });
+      stage.appendChild(canvas);
+      stage.appendChild(svg);
+      container.appendChild(stage);
+
+      renderGeoLandLayers(svg, width, height, margin);
+      renderHeatCanvas(canvas, width, height, margin, points, min, max);
+      renderGeoMapOverlays(svg, width, height, margin);
+      renderPortGroupLayers(svg, width, height, margin);
+
+      const markerGroup = svgElement("g", {}, svg);
+      points.forEach((point) => {
+        const [cx, cy] = geoProject(point.lat, point.lon, width, height, margin);
+        const intensity = (point.value - min) / Math.max(max - min, 1e-6);
+        const radius = 4.5 + intensity * 4.5;
+        const group = portGroupById.get(point.group);
+        const selected = state.selectedPort === point.port;
+        const glow = svgElement("circle", {
+          cx,
+          cy,
+          r: radius + (selected ? 8 : 5),
+          fill: group ? group.color : method.color,
+          opacity: selected ? 0.34 : 0.18
+        }, markerGroup);
+        const marker = svgElement("circle", {
+          cx,
+          cy,
+          r: radius,
+          fill: "#fffdf7",
+          stroke: selected ? group?.color || method.color : method.color,
+          "stroke-width": selected ? 3 : 2,
+          cursor: "pointer"
+        }, markerGroup);
+        const show = (event) => showTooltip(event,
+          `<strong>${escapeHtml(point.port)}</strong><br>${escapeHtml(point.city)} · ${escapeHtml(point.group)}<br>类型：${escapeHtml(point.portType || portCoordByName.get(point.port)?.portType || "—")}<br>${state.geoYear} · ${escapeHtml(method.label)}<br>GPE ${format(point.value, 4)}`
+        );
+        const activate = () => {
+          state.selectedGroup = point.group;
+          selectPort(point.port);
+        };
+        marker.addEventListener("mousemove", show);
+        marker.addEventListener("mouseleave", hideTooltip);
+        marker.addEventListener("click", activate);
+        glow.addEventListener("mousemove", show);
+        glow.addEventListener("mouseleave", hideTooltip);
+        glow.addEventListener("click", activate);
+      });
+
+      const title = svgElement("text", {
+        x: margin.left,
+        y: 18,
+        fill: "#16333a",
+        "font-size": 13,
+        "font-weight": 700
+      }, svg);
+      title.textContent = `${state.geoYear} · ${method.short} · 39 港 GPE 空间热力`;
+
+      const values = points.map((point) => point.value);
+      const median = quantile(values, 0.5);
+      const topPort = points.slice().sort((left, right) => right.value - left.value)[0];
+      const bottomPort = points.slice().sort((left, right) => left.value - right.value)[0];
+      $("#geo-summary").innerHTML = `
+        <div class="geo-metric"><span>当年中位数</span><strong>${format(median, 4)}</strong></div>
+        <div class="geo-metric"><span>最高效率港口</span><strong>${escapeHtml(topPort.port)} · ${format(topPort.value, 4)}</strong></div>
+        <div class="geo-metric"><span>最低效率港口</span><strong>${escapeHtml(bottomPort.port)} · ${format(bottomPort.value, 4)}</strong></div>
+      `;
+      $("#geo-legend-min").textContent = format(min, 3);
+      $("#geo-legend-max").textContent = format(max, 3);
+      const districtCount = (DATA.mapLayers.districts || []).length;
+      $("#geo-map-credit").textContent =
+        `底图：${DATA.mapLayers.source}；${DATA.mapLayers.provinces.length} 省 / ${DATA.mapLayers.prefectures.length} 市 / ${districtCount} 区县界。点击港口群标签或色块查看下属港口与类型。`;
+      renderGeoDetailPanel();
+    }
+
+    function statsRows() {
+      const records = filteredRecords();
+      return DATA.methods.map((method) => ({ ...method, ...summary(valuesFor(records, method.id)) }));
+    }
+
+    function renderTable() {
+      const rows = statsRows().sort((left, right) => {
+        const a = left[state.sortKey], b = right[state.sortKey];
+        const result = typeof a === "string" ? a.localeCompare(b, "zh-CN") : (a ?? -Infinity) - (b ?? -Infinity);
+        return state.sortDirection === "asc" ? result : -result;
+      });
+      $("#stats-table").innerHTML = rows.map((row) => `
+        <tr>
+          <td><div class="method-cell"><span class="dot" style="background:${row.color}"></span>${row.label}</div><div class="column-name">${row.column}</div></td>
+          <td><span class="family-chip">${row.familyLabel}</span></td>
+          <td>${row.n}</td>
+          <td>${format(row.mean)}</td>
+          <td>${format(row.median)}</td>
+          <td>${format(row.sd)}</td>
+          <td>${format(row.q1)}</td>
+          <td>${format(row.q3)}</td>
+          <td>${format(row.max)}</td>
+          <td>${row.aboveOne}</td>
+        </tr>
+      `).join("");
+    }
+
+    function updateSampleLabel() {
+      const records = filteredRecords();
+      const ports = new Set(records.map((record) => record.port)).size;
+      $("#active-sample").textContent = `${records.length} 条 / ${ports} 港`;
+    }
+
+    function renderAll() {
+      updateSampleLabel();
+      renderDistribution();
+      renderAtlas();
+      renderScatter();
+      renderHeatmap();
+      renderTrend();
+      renderGeoHeatmap();
+      renderTable();
+    }
+
+    function init() {
+      populateControls();
+      renderOverview();
+      renderTrendControls();
+      $("#source-note").innerHTML =
+        `来源：<code>${escapeHtml(DATA.meta.sourceFile)}</code> 的 <code>${escapeHtml(DATA.meta.sourceSheet)}</code>；` +
+        `${DATA.meta.rows} 条观测、${DATA.meta.ports} 港、${DATA.meta.yearMin}–${DATA.meta.yearMax} 年。`;
+      $("#footer-source").textContent = `${DATA.meta.sourceFile} · ${DATA.meta.sourceSheet}`;
+      $$("th[data-sort]").forEach((header) => {
+        header.addEventListener("click", () => {
+          const key = header.dataset.sort;
+          if (state.sortKey === key) {
+            state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
+          } else {
+            state.sortKey = key;
+            state.sortDirection = key === "label" || key === "familyLabel" ? "asc" : "desc";
+          }
+          renderTable();
+        });
+      });
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) entry.target.classList.add("visible");
+        });
+      }, { threshold: 0.08 });
+      $$(".section").forEach((section) => observer.observe(section));
+      renderAll();
+      let resizeTimer;
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          renderDistribution();
+          renderScatter();
+          renderTrend();
+          renderGeoHeatmap();
+        }, 150);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>

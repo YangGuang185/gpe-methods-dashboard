@@ -28,6 +28,16 @@ git commit -m "Update dashboard data"
 git push
 ```
 
+首次构建前需下载行政边界 GeoJSON（约 4.3 MB，已缓存则跳过）：
+
+```bash
+mkdir -p web/gpe-dashboard/data
+curl -fsSL "https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json" \
+  -o web/gpe-dashboard/data/china_provinces.json
+curl -fsSL "https://geo.datav.aliyun.com/areas_v3/bound/100000_full_city.json" \
+  -o web/gpe-dashboard/data/china_cities.json
+```
+
 ## 首次部署到 GitHub Pages
 
 1. 在 GitHub 新建 **Public** 仓库，名称建议 `gpe-methods-dashboard`（不要勾选 README）。
